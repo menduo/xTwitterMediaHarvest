@@ -17,6 +17,7 @@ import {
   TwitterKeyboardMonitor,
 } from './KeyboardMonitor'
 import './main.sass'
+import TextTweetObserver from './observers/TextTweetObserver'
 import TweetDeckBetaObserver from './observers/TweetDeckBetaObserver'
 import TwitterMediaObserver from './observers/TwitterMediaObserver'
 import { isBetaTweetDeck, isTwitter } from './utils/checker'
@@ -45,6 +46,12 @@ const useObserver = (revealNsfw: boolean) => {
   return new TwitterMediaObserver(revealNsfw)
 }
 
+const useTextObserver = () => {
+  if (isTwitter()) return new TextTweetObserver('twitter')
+  if (isBetaTweetDeck()) return new TextTweetObserver('tweetdeck')
+  return new TextTweetObserver('twitter')
+}
+
 const useKeboardMonitor = () => {
   if (isTwitter()) return new TwitterKeyboardMonitor()
   if (isBetaTweetDeck()) return new TweetDeckBetaKeyboardMonitor()
@@ -71,6 +78,7 @@ featureSettingsRepo
   })
   .then(feature => {
     const observer = useObserver(feature.autoRevealNsfw)
+    const textObserver = useTextObserver()
     if (!observer) return
 
     window.addEventListener(
@@ -80,8 +88,10 @@ featureSettingsRepo
         return () => {
           monitorKeyboardByFlag(feature.keyboardShortcut)
           observer.initialize()
+          textObserver.initialize()
           if (!hasFocused) {
             observer.observeRoot()
+            textObserver.observeRoot()
             hasFocused = true
           }
         }
@@ -89,6 +99,7 @@ featureSettingsRepo
     )
 
     observer.observeRoot()
+    textObserver.observeRoot()
     return feature
   })
 

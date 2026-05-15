@@ -13,7 +13,7 @@ msgstr ""
 
 msgctxt "app"
 msgid "appDesc"
-msgstr "Download videos and images from twitter or TweetDeck with only one click."
+msgstr "Download videos, images, and text-only posts from Twitter/X or TweetDeck with only one click."
 
 msgctxt "app"
 msgid "appName"

@@ -72,6 +72,7 @@ const config = {
 export default (env, argv) => {
   const isProduction = isProductionMode(argv)
   const isSelfSign = env['self-sign'] ?? false
+  const disableTelemetry = Boolean(env['disable-telemetry'] ?? false)
   const BROWSER = env.target
   const BROWSER_DIR = isSelfSign ? BROWSER + '-signed' : BROWSER
   const OUTPUT_DIR = resolve(process.cwd(), 'build', BROWSER_DIR)
@@ -102,13 +103,18 @@ export default (env, argv) => {
         __EDGE__: BROWSER === 'edge',
         __CHROMIUM__: BROWSER === 'chrome' || BROWSER === 'edge',
         __SAFARI__: BROWSER === 'safari',
-        __SENTRY_DEBUG__: argv.mode === 'development',
-        __SENTRY_TRACING__: true,
+        __SENTRY_DEBUG__: argv.mode === 'development' && !disableTelemetry,
+        __SENTRY_TRACING__: !disableTelemetry,
         __RRWEB_EXCLUDE_IFRAME__: true,
         __RRWEB_EXCLUDE_SHADOW_DOM__: true,
         __SENTRY_EXCLUDE_REPLAY_WORKER__: true,
         __LOGGING__: argv.mode === 'development',
-        __METRICS__: true,
+        __METRICS__: !disableTelemetry,
+        ...(disableTelemetry
+          ? {
+              'process.env.SENTRY_DSN': JSON.stringify(''),
+            }
+          : {}),
       }),
     ],
   })

@@ -6,9 +6,17 @@
 import {
   CheckDownloadHistoryMessage,
   DownloadTweetMediaMessage,
+  SaveTweetContentMessage,
   sendMessage,
 } from '#libs/webExtMessage'
-import { getTweetInfoFromArticleChildElement } from './article'
+import {
+  articleHasMedia,
+  getClosedTargetArticle,
+  getTweetContentFromArticleChildElement,
+  getTweetCreatedAtFromArticleChildElement,
+  getTweetInfoFromArticleChildElement,
+  isTextOnlyTargetArticle,
+} from './article'
 
 type ButtonElement = HTMLElement
 
@@ -41,6 +49,12 @@ const isDownloadingButton = (button: ButtonElement) =>
 const responseStatusToButtonStatus = (respStatus: 'ok' | 'error') =>
   respStatus === 'ok' ? ButtonStatus.Success : ButtonStatus.Error
 
+const isMediaButton = (button: HTMLElement) => {
+  const article = getClosedTargetArticle(button)
+  if (article && isTextOnlyTargetArticle(article)) return false
+  return article ? articleHasMedia(article) : false
+}
+
 const buttonClickHandler = (e: MouseEvent) => {
   e.stopImmediatePropagation()
   const target = e.target
@@ -58,6 +72,26 @@ const buttonClickHandler = (e: MouseEvent) => {
     return setButtonStatus(ButtonStatus.Error)(button)
   }
   const message = new DownloadTweetMediaMessage(value.mapBy(props => props))
+  const contentResult = getTweetContentFromArticleChildElement(button)
+  const createdAt = getTweetCreatedAtFromArticleChildElement(button)
+  const saveContentMessage = contentResult.value
+    ? new SaveTweetContentMessage({
+        ...value.mapBy(props => props),
+        content: contentResult.value,
+        createdAt,
+      })
+    : undefined
+
+  if (!isMediaButton(button)) {
+    if (!saveContentMessage) return setButtonStatus(ButtonStatus.Error)(button)
+
+    return sendMessage(saveContentMessage).then(resp =>
+      setButtonStatus(responseStatusToButtonStatus(resp.status))(button)
+    )
+  }
+
+  if (saveContentMessage) void sendMessage(saveContentMessage)
+
   sendMessage(message).then(resp =>
     setButtonStatus(responseStatusToButtonStatus(resp.status))(button)
   )

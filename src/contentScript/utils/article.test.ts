@@ -4,8 +4,11 @@
 import { TweetInfo } from '#domain/valueObjects/tweetInfo'
 import {
   articleHasMedia,
+  articleHasText,
+  articleHasTextOnlyDownloadableContent,
   getLinksFromArticle,
   getScreenNameFromLink,
+  getTweetContent,
   getTweetIdFromLink,
   isArticleInStatus,
   isArticleInStream,
@@ -186,3 +189,24 @@ describe.each([
     })
   }
 )
+
+describe('text-only tweet helpers', () => {
+  it('can detect text-only downloadable content', () => {
+    document.body.innerHTML = `
+      <article data-testid="tweet">
+        <div data-testid="User-Name">
+          <a href="/alice/status/123"></a>
+        </div>
+        <a href="/alice/status/123"><time datetime="2026-05-11T10:00:00.000Z"></time></a>
+        <div data-testid="tweetText">hello tweet</div>
+      </article>
+    `
+
+    const article = getAllByTestId(document.body, 'tweet')[0]
+
+    expect(articleHasText(article)).toBe(true)
+    expect(articleHasMedia(article)).toBe(false)
+    expect(articleHasTextOnlyDownloadableContent(article)).toBe(true)
+    expect(getTweetContent(article)).toBe('hello tweet')
+  })
+})

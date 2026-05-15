@@ -39,14 +39,15 @@ const appendDevelopmentManifestAttributes = (manifest, isLegacy) => {
 /**
  * @param {unknown} manifest
  * @param {string} addOnId
- * @param {string} updateUrl
+ * @param {{ updateUrl?: string, dataCollectionPermissions?: { required: string[], optional?: string[] } }} options
  * @returns
  */
 const appendFirefoxSpecificManifestAttributes = (
   manifest,
   addOnId,
-  updateUrl
+  options = {}
 ) => {
+  const { updateUrl, dataCollectionPermissions } = options
   const browsers = browserslist()
   const firefoxVersions = browsers
     .filter(browser => browser.startsWith('firefox'))
@@ -59,6 +60,9 @@ const appendFirefoxSpecificManifestAttributes = (
       loose: true,
     }
   )
+  const effectiveMinFirefoxVersion = semver.gt(minFirefoxVersion, '115.0.0')
+    ? minFirefoxVersion
+    : semver.minVersion('115.0.0')
 
   return {
     ...manifest,
@@ -66,12 +70,26 @@ const appendFirefoxSpecificManifestAttributes = (
       browser_specific_settings: {
         gecko: {
           id: addOnId,
-          strict_min_version: `${minFirefoxVersion.major}.${minFirefoxVersion.minor}`,
+          strict_min_version: `${effectiveMinFirefoxVersion.major}.${effectiveMinFirefoxVersion.minor}`,
+          ...(dataCollectionPermissions
+            ? { data_collection_permissions: dataCollectionPermissions }
+            : {}),
           ...(updateUrl ? { update_url: updateUrl } : {}),
         },
       },
     },
   }
+}
+
+const parseEnvStringList = value => {
+  if (typeof value !== 'string') return undefined
+
+  const values = value
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean)
+
+  return values.length > 0 ? values : undefined
 }
 
 /**
@@ -111,11 +129,34 @@ export default (env, argv) => {
   const VERSION = version
   const BROWSER = getTarget(env)
   const VERSION_NAME = `${VERSION} (${BROWSER})`
-  const isSelfSign = 'self-sign' in env
+  const isAmoSubmit = 'amo-submit' in env
   const isFirefox = BROWSER === 'firefox'
   const isChrome = BROWSER === 'chrome'
   const isEdge = BROWSER === 'edge'
   const isChromium = isChrome || isEdge
+  const defaultFirefoxAddonId = 'xtwittermediaharvest-text@menduo.local'
+  const firefoxAddonId =
+    env['firefox-addon-id'] ??
+    process.env.FIREFOX_ADDON_ID ??
+    defaultFirefoxAddonId
+  const firefoxUpdateUrl =
+    env['firefox-update-url'] ?? process.env.FIREFOX_UPDATE_URL
+  const firefoxDataCollectionRequired = parseEnvStringList(
+    env['firefox-data-required'] ??
+      process.env.FIREFOX_DATA_COLLECTION_REQUIRED ??
+      (isAmoSubmit ? 'none' : undefined)
+  )
+  const firefoxDataCollectionOptional = parseEnvStringList(
+    env['firefox-data-optional'] ?? process.env.FIREFOX_DATA_COLLECTION_OPTIONAL
+  )
+  const firefoxDataCollectionPermissions = firefoxDataCollectionRequired
+    ? {
+        required: firefoxDataCollectionRequired,
+        ...(firefoxDataCollectionOptional
+          ? { optional: firefoxDataCollectionOptional }
+          : {}),
+      }
+    : undefined
 
   return merge(baseConfig(env, argv), {
     name: 'service',
@@ -167,25 +208,21 @@ export default (env, argv) => {
               }
 
               if (isFirefox) {
-                if (isProduction) {
-                  if (isSelfSign) {
-                    manifest = appendFirefoxSpecificManifestAttributes(
-                      manifest,
-                      'mediaharvest@mediaharvest.app',
-                      'https://release.mediaharvest.app/gecko/update.json'
-                    )
-                  } else {
-                    manifest = appendFirefoxSpecificManifestAttributes(
-                      manifest,
-                      'mediaharvest@addons.mozilla.org'
-                    )
+                manifest = appendFirefoxSpecificManifestAttributes(
+                  manifest,
+                  isProduction
+                    ? firefoxAddonId
+                    : 'xtwittermediaharvest-text@development',
+                  {
+                    ...(isProduction
+                      ? {
+                          updateUrl: firefoxUpdateUrl,
+                          dataCollectionPermissions:
+                            firefoxDataCollectionPermissions,
+                        }
+                      : {}),
                   }
-                } else {
-                  manifest = appendFirefoxSpecificManifestAttributes(
-                    manifest,
-                    'mediaharvest@development'
-                  )
-                }
+                )
               }
 
               return Buffer.from(JSON.stringify(manifest))

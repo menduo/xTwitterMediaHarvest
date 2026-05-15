@@ -15,7 +15,7 @@ msgstr ""
 
 msgctxt "app"
 msgid "appDesc"
-msgstr "Pobieranie wideo i obrazów z Twittera lub TweetDecka jednym kliknięciem."
+msgstr "Pobiera filmy, obrazy i posty zawierające wyłącznie tekst z Twittera/X lub TweetDecka jednym kliknięciem."
 
 msgctxt "app"
 msgid "appName"

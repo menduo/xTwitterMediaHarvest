@@ -5,6 +5,7 @@
  */
 import { getEventPublisher } from '#infra/eventPublisher'
 import { Aria2DownloadMediaFile } from '#infra/useCases/aria2DownloadMediaFile'
+import { BrowserDownloadFile } from '#infra/useCases/browserDownloadFile'
 import { BrowserDownloadMediaFile } from '#infra/useCases/browserDownloadMediaFile'
 import { WebExtAction } from '#libs/webExtMessage'
 import {
@@ -18,6 +19,7 @@ import {
 import captureResponseHandler from './messageHandlers/captureResponse'
 import checkDownloadHistoryHandler from './messageHandlers/checkDownloadHistory'
 import downloadMessageHandler from './messageHandlers/downloadMediaHandler'
+import saveTweetContentHandler from './messageHandlers/saveTweetContentHandler'
 import { type MessageRouter } from './messageRouter'
 
 const eventPublisher = getEventPublisher()
@@ -47,6 +49,15 @@ export const initMessageRouter = (router: MessageRouter): MessageRouter =>
     .route(
       WebExtAction.CheckDownloadHistory,
       checkDownloadHistoryHandler({ downloadHistoryRepo })
+    )
+    .route(
+      WebExtAction.SaveTweetContent,
+      saveTweetContentHandler({
+        filenameSettingRepo: filenameSettingsRepo,
+        downloadSettingsRepo,
+        tweetCacheRepo: tweetResponseCache,
+        browserDownloadFile: new BrowserDownloadFile(),
+      })
     )
     .route(
       WebExtAction.CaptureResponse,

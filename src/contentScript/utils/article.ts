@@ -131,6 +131,12 @@ export const findButton = (article: HTMLElement): HTMLElement | undefined =>
 export const articleHasMedia = (article: HTMLElement) =>
   article && (articleHasVideo(article) || aricleHasPhoto(article))
 
+export const articleHasText = (article: HTMLElement) =>
+  Boolean(getTweetContent(article))
+
+export const articleHasTextOnlyDownloadableContent = (article: HTMLElement) =>
+  articleHasText(article) && !articleHasMedia(article)
+
 export const isArticleCanBeAppend = (article: HTMLElement) =>
   !(
     elementExists('.deck-harvester', article) ||
@@ -211,6 +217,7 @@ export const parseLinks =
     )
 
 const TARGET_ARTICLE_DATASET_CRITERIA = 'harvestArticle'
+const TEXT_ONLY_TARGET_ARTICLE_DATASET_CRITERIA = 'harvestTextOnly'
 
 export const setTargetArticle = <T extends HTMLElement | undefined | null>(
   article: T
@@ -221,8 +228,22 @@ export const setTargetArticle = <T extends HTMLElement | undefined | null>(
   return article
 }
 
+export const setTextOnlyTargetArticle = <
+  T extends HTMLElement | undefined | null,
+>(
+  article: T
+) => {
+  if (article) {
+    article.dataset[TEXT_ONLY_TARGET_ARTICLE_DATASET_CRITERIA] = 'true'
+  }
+  return article
+}
+
 export const getClosedTargetArticle = <T extends Element>(ele: T) =>
   ele.closest<T>('[data-harvest-article]')
+
+export const isTextOnlyTargetArticle = (article: HTMLElement) =>
+  article.dataset[TEXT_ONLY_TARGET_ARTICLE_DATASET_CRITERIA] === 'true'
 
 export const getTweetInfoFromArticleChildElement = <T extends HTMLElement>(
   childElement: T
@@ -233,4 +254,41 @@ export const getTweetInfoFromArticleChildElement = <T extends HTMLElement>(
     E.fromNullable('Failed to get target article when parsing tweet info.'),
     E.flatMap(parseTweetInfo),
     E.match(flow(E.toError, toErrorResult<TweetInfo>), toSuccessResult)
+  )
+
+export const getTweetContent = (article: HTMLElement): string | undefined => {
+  const tweetText =
+    $<HTMLElement>('[data-testid="tweetText"]', article) ??
+    $<HTMLElement>('[lang]', article)
+
+  const text = (tweetText?.innerText ?? tweetText?.textContent ?? '').trim()
+  return text && text.length > 0 ? text : undefined
+}
+
+export const getTweetCreatedAt = (article: HTMLElement): string | undefined => {
+  const time = $<HTMLTimeElement>('time[datetime]', article)
+  return time?.dateTime
+}
+
+export const getTweetContentFromArticleChildElement = <T extends HTMLElement>(
+  childElement: T
+): Result<string> =>
+  pipe(
+    childElement,
+    getClosedTargetArticle,
+    E.fromNullable('Failed to get target article when parsing tweet content.'),
+    E.flatMap(article =>
+      pipe(
+        getTweetContent(article),
+        E.fromNullable('Failed to get tweet content from article.')
+      )
+    ),
+    E.match(flow(E.toError, toErrorResult<string>), toSuccessResult)
+  )
+
+export const getTweetCreatedAtFromArticleChildElement = <T extends HTMLElement>(
+  childElement: T
+): string | undefined =>
+  pipe(childElement, getClosedTargetArticle, article =>
+    article ? getTweetCreatedAt(article) : undefined
   )

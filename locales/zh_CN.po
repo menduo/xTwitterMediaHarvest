@@ -13,7 +13,7 @@ msgstr ""
 
 msgctxt "app"
 msgid "appDesc"
-msgstr "一键从 Twitter 或 TweetDeck 下载视频和图片。"
+msgstr "一键从 Twitter、X 或 TweetDeck 下载视频、图片和纯文本帖子。"
 
 msgctxt "app"
 msgid "appName"

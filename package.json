@@ -1,6 +1,6 @@
 {
   "name": "twitter-media-harvest",
-  "version": "4.5.3",
+  "version": "104.5.3",
   "type": "module",
   "description": "The easiest way to get media from twitter-timeline.",
   "engines": {
@@ -144,6 +144,7 @@
     "build:firefox:all": "webpack --mode=production --progress --color --env target=firefox --env zip=true",
     "build:firefox:all:dev": "webpack --mode=development --progress --color --env target=firefox",
     "build:firefox:all:self-sign": "webpack --mode=production --progress --color --env target=firefox --env self-sign --env zip=true",
+    "build:firefox:all:amo": "webpack --mode=production --progress --color --env target=firefox --env self-sign --env zip=true --env amo-submit --env disable-telemetry",
     "build:chrome:service": "webpack --mode=production --progress --color --env target=chrome --config-name=service",
     "build:chrome:injection": "webpack --mode=production --progress --color --env target=chrome --config-name=content-script",
     "build:chrome:all:dev": "webpack --mode=development --progress --color --env target=chrome",

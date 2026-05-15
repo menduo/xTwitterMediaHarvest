@@ -6,6 +6,7 @@
 
 export * from './base'
 export * from './downloadTweetMedia'
+export * from './saveTweetContent'
 export * from './checkDownloadHistory'
 export * from './aria2Donwload'
 export * from './captureResponse'

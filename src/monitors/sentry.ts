@@ -15,6 +15,8 @@ import {
 } from '@sentry/browser'
 
 export const init = (options?: InitializationOptions) => {
+  if (!process.env.SENTRY_DSN) return
+
   const integrations = [
     captureConsoleIntegration({ levels: ['error'], handled: true }),
   ]
