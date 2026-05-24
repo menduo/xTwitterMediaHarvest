@@ -1,3 +1,4 @@
+import type { DownloadHistory } from '#domain/entities/downloadHistory'
 import { DownloadConfig } from '#domain/valueObjects/downloadConfig'
 import { TweetWithContent } from '#domain/valueObjects/tweetWithContent'
 import { MockTweetResponseCache } from '#mocks/caches/tweetResponseCache'
@@ -13,14 +14,26 @@ describe('SaveTweetContent', () => {
   const downloadSettingsRepo = new MockDownloadSettingsRepository()
   const tweetCacheRepo = new MockTweetResponseCache()
   const browserDownloadFile = new MockDownloadFile()
+  const downloadHistoryRepo = {
+    clear: jest.fn(),
+    getByTweetId: jest.fn(),
+    hasTweetId: jest.fn(),
+    removeByTweetId: jest.fn(),
+    save: jest.fn(),
+    total: jest.fn(),
+  }
   const saveTweetContent = new SaveTweetContent({
+    downloadHistoryRepo,
     filenameSettingRepo,
     downloadSettingsRepo,
     tweetCacheRepo,
     browserDownloadFile,
   })
 
-  afterEach(() => jest.restoreAllMocks())
+  afterEach(() => {
+    jest.restoreAllMocks()
+    jest.clearAllMocks()
+  })
 
   it('uses blob URL when createObjectURL is available', async () => {
     jest
@@ -48,6 +61,7 @@ describe('SaveTweetContent', () => {
     expect(result).toBe(true)
     expect(downloadSpy).toHaveBeenCalledTimes(1)
     expect(downloadSpy.mock.calls[0][0].target).toBeInstanceOf(DownloadConfig)
+    expect(downloadHistoryRepo.save).toHaveBeenCalledTimes(1)
     const downloadConfig = downloadSpy.mock.calls[0][0].target as DownloadConfig
     expect(downloadConfig.mapBy(props => props.filename)).toContain('.md')
     expect(downloadConfig.mapBy(props => props.url)).toBe('blob:tweet-markdown')
@@ -83,6 +97,8 @@ describe('SaveTweetContent', () => {
 
     expect(result).toBe(true)
     expect(downloadSpy).toHaveBeenCalledTimes(1)
+    expect(downloadHistoryRepo.save).toHaveBeenCalledTimes(1)
+    expect(downloadHistoryRepo.save.mock.calls[0][0].id.value).toBe('123')
     const downloadConfig = downloadSpy.mock.calls[0][0].target as DownloadConfig
     expect(downloadConfig.mapBy(props => props.url)).toBe(
       'data:text/markdown;base64,aGVsbG8gbWFya2Rvd24='
@@ -100,5 +116,36 @@ describe('SaveTweetContent', () => {
 
     expect(result).toBe(false)
     expect(downloadSpy).not.toHaveBeenCalled()
+    expect(downloadHistoryRepo.save).not.toHaveBeenCalled()
+  })
+
+  it('uses cached tweet to save download history when available', async () => {
+    const cachedTweet = new TweetWithContent({
+      tweet: generateTweet(false),
+      content: 'cached content',
+    })
+    jest
+      .spyOn(tweetCacheRepo, 'get')
+      .mockResolvedValueOnce(toSuccessResult(cachedTweet))
+    jest.spyOn(browserDownloadFile, 'process').mockResolvedValueOnce(undefined)
+
+    const result = await saveTweetContent.process({
+      tweetId: cachedTweet.tweet.id,
+      screenName: cachedTweet.tweet.user.mapBy(props => props.screenName),
+      content: 'hello markdown',
+      createdAt: new Date('2024-10-10T10:10:10.000Z'),
+    })
+
+    expect(result).toBe(true)
+    expect(downloadHistoryRepo.save).toHaveBeenCalledTimes(1)
+    expect(downloadHistoryRepo.save.mock.calls[0][0].id.value).toBe(
+      cachedTweet.tweet.id
+    )
+    const history = downloadHistoryRepo.save.mock.calls[0][0] as DownloadHistory
+    expect(
+      history.mapBy((_id, props) =>
+        props.tweetUser.mapBy(userProps => userProps.screenName)
+      )
+    ).toBe(cachedTweet.tweet.user.mapBy(props => props.screenName))
   })
 })

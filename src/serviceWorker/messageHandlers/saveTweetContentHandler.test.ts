@@ -10,8 +10,19 @@ describe('saveTweetContentHandler', () => {
   const downloadSettingsRepo = new MockDownloadSettingsRepository()
   const tweetCacheRepo = new MockTweetResponseCache()
   const browserDownloadFile = new MockDownloadFile()
+  const downloadHistoryRepo = {
+    clear: jest.fn(),
+    getByTweetId: jest.fn(),
+    hasTweetId: jest.fn(),
+    removeByTweetId: jest.fn(),
+    save: jest.fn(),
+    total: jest.fn(),
+  }
 
-  afterEach(() => jest.restoreAllMocks())
+  afterEach(() => {
+    jest.restoreAllMocks()
+    jest.clearAllMocks()
+  })
 
   it('returns error response when saving tweet content throws', async () => {
     jest
@@ -19,6 +30,7 @@ describe('saveTweetContentHandler', () => {
       .mockRejectedValueOnce(new Error('download failed'))
 
     const handler = saveTweetContentHandler({
+      downloadHistoryRepo,
       filenameSettingRepo,
       downloadSettingsRepo,
       tweetCacheRepo,

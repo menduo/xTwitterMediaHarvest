@@ -124,4 +124,24 @@ describe('button click side effects', () => {
       })
     ).toBe(true)
   })
+
+  it('downloads media when a previously text-only article later has media', async () => {
+    document.body.innerHTML = makeArticleHtml({ withMedia: true })
+
+    const sendMessageSpy = jest
+      .spyOn(runtime, 'sendMessage')
+      .mockResolvedValueOnce({ status: 'ok', payload: { isExist: false } })
+      .mockResolvedValueOnce({ status: 'ok' })
+      .mockResolvedValueOnce({ status: 'ok' })
+
+    prepareButton({ textOnly: true })
+    await userEvent.click(screen.getByTestId('harvester-button'))
+
+    expect(
+      sendMessageSpy.mock.calls.some(([message]) => {
+        const validated = DownloadTweetMediaMessage.validate(message)
+        return validated.value?.toObject().action === WebExtAction.DownloadMedia
+      })
+    ).toBe(true)
+  })
 })

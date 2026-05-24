@@ -23,6 +23,14 @@ const enum Query {
 export default class TwitterMediaObserver implements IHarvestObserver {
   constructor(readonly autoRevealNsfw = false) {}
 
+  private getArticlesFromNode(node: HTMLElement): HTMLElement[] {
+    const articles = $$<HTMLElement>('article', node)
+    const currentArticle = node.closest<HTMLElement>('article')
+    if (currentArticle) articles.unshift(currentArticle)
+    if (node.matches('article')) articles.unshift(node)
+    return [...new Set(articles)]
+  }
+
   observeRoot() {
     const options: MutationObserverInit = {
       childList: true,
@@ -60,17 +68,17 @@ export default class TwitterMediaObserver implements IHarvestObserver {
     const mutaionCb: MutationCallback = mutations => {
       for (const mutation of mutations) {
         for (const addedNode of mutation.addedNodes) {
-          if (!(addedNode instanceof HTMLElement)) return
+          if (!(addedNode instanceof HTMLElement)) continue
 
           const mediaBlocks = $$('li', addedNode)
           mediaBlocks.forEach(
             mediaBlock => this.autoRevealNsfw && revealNsfw(mediaBlock)
           )
 
-          const article = $('article', addedNode)
-          if (!article) return
-          if (this.autoRevealNsfw) revealNsfw(article)
-          if (articleHasMedia(article)) makeHarvester(article)
+          this.getArticlesFromNode(addedNode).forEach(article => {
+            if (this.autoRevealNsfw) revealNsfw(article)
+            if (articleHasMedia(article)) makeHarvester(article)
+          })
         }
       }
     }

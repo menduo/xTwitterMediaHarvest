@@ -4,8 +4,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 import type { ICache } from '#domain/repositories/cache'
+import type { IXTransactionIdRepository } from '#domain/repositories/xTransactionId'
 import type { AsyncUseCase } from '#domain/useCases/base'
 import { TweetWithContent } from '#domain/valueObjects/tweetWithContent'
+import { XTransactionId } from '#domain/valueObjects/xTransactionId'
 import { isMediaTweet } from '#libs/XApi/parsers/refinements'
 import {
   eagerParseTweet,
@@ -19,11 +21,15 @@ import Joi from 'joi'
 
 export interface CaptureResponseAndCacheCommand {
   type: ResponseType
+  path?: string
+  method?: string
   body: string
+  transactionId?: string
 }
 
 export interface InfraProvider {
   tweetResponseCache: ICache<TweetWithContent>
+  xTransactionIdRepo?: IXTransactionIdRepository
 }
 
 export class CaptureResponseAndCache implements AsyncUseCase<
@@ -160,7 +166,10 @@ export class CaptureResponseAndCache implements AsyncUseCase<
 
   async process({
     type,
+    path,
+    method,
     body,
+    transactionId,
   }: CaptureResponseAndCacheCommand): Promise<UnsafeTask<Error>> {
     let error: UnsafeTask = undefined
     // eslint-disable-next-line no-console
@@ -208,6 +217,27 @@ export class CaptureResponseAndCache implements AsyncUseCase<
       default:
         // eslint-disable-next-line no-console
         if (__DEV__) console.debug(`Not implemented for ${type}`)
+    }
+
+    if (
+      !error &&
+      transactionId &&
+      path &&
+      method &&
+      this.infra.xTransactionIdRepo
+    ) {
+      const txIdResult = XTransactionId.create({
+        method,
+        path,
+        value: transactionId,
+      })
+
+      if (txIdResult.value) {
+        const saveError = await this.infra.xTransactionIdRepo.save(
+          txIdResult.value
+        )
+        if (saveError) return saveError
+      }
     }
 
     /* eslint-disable no-console */

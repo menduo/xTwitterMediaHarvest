@@ -3,7 +3,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+import {
+  DownloadHistory,
+  DownloadHistoryId,
+} from '#domain/entities/downloadHistory'
+import { tweetToDownloadHistory } from '#domain/factories/tweetToDownloadHistory'
 import type { ICache } from '#domain/repositories/cache'
+import type { IDownloadHistoryRepository } from '#domain/repositories/downloadHistory'
 import type {
   ISettingsRepository,
   ISettingsVORepository,
@@ -12,9 +18,11 @@ import { makeTweetMarkdownFilename } from '#domain/services/makeTweetMarkdownFil
 import type { AsyncUseCase } from '#domain/useCases/base'
 import type { DownloadFileUseCase } from '#domain/useCases/downloadFile'
 import { DownloadConfig } from '#domain/valueObjects/downloadConfig'
+import { DownloadHistoryTweetUser } from '#domain/valueObjects/downloadHistoryTweetUser'
 import type { FilenameSetting } from '#domain/valueObjects/filenameSetting'
 import { TweetWithContent } from '#domain/valueObjects/tweetWithContent'
 import ConflictAction from '#enums/ConflictAction'
+import MediaType from '#enums/mediaType'
 import type { DownloadSettings } from '#schema'
 
 type SaveTweetContentCommand = {
@@ -25,6 +33,7 @@ type SaveTweetContentCommand = {
 }
 
 type InfraProvider = {
+  downloadHistoryRepo: IDownloadHistoryRepository
   filenameSettingRepo: ISettingsVORepository<FilenameSetting>
   downloadSettingsRepo: ISettingsRepository<DownloadSettings>
   tweetCacheRepo: ICache<TweetWithContent>
@@ -88,6 +97,42 @@ export class SaveTweetContent implements AsyncUseCase<
       }),
     })
 
-    return result === undefined
+    if (result !== undefined) return false
+
+    await this.saveDownloadHistory(
+      createDownloadHistory(command, cachedTweet ?? undefined)
+    )
+
+    return true
   }
+
+  private async saveDownloadHistory(downloadHistory: DownloadHistory) {
+    const saveHistoryError =
+      await this.infra.downloadHistoryRepo.save(downloadHistory)
+    if (saveHistoryError) {
+      // eslint-disable-next-line no-console
+      console.error(saveHistoryError)
+    }
+  }
+}
+
+const createDownloadHistory = (
+  command: SaveTweetContentCommand,
+  cachedTweet?: TweetWithContent
+) => {
+  if (cachedTweet) {
+    return tweetToDownloadHistory(cachedTweet.tweet)
+  }
+
+  return new DownloadHistory(new DownloadHistoryId(command.tweetId), {
+    mediaType: MediaType.Mixed,
+    downloadTime: new Date(),
+    hashtags: [],
+    tweetTime: command.createdAt ?? new Date(),
+    tweetUser: new DownloadHistoryTweetUser({
+      userId: '',
+      displayName: command.screenName,
+      screenName: command.screenName,
+    }),
+  })
 }

@@ -21,7 +21,10 @@ const captureResponseHandler = (
 
     const cacheError = await useCase.process({
       body: message.payload.body,
+      path: message.payload.path,
+      method: message.payload.method,
       type: message.payload.type,
+      transactionId: message.payload.transactionId,
     })
 
     return cacheError

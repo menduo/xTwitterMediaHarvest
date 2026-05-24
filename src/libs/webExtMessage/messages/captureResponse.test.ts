@@ -4,7 +4,10 @@ describe('unit test for capture response web ext message', () => {
   it('can validate valid message', () => {
     const message = new CaptureResponseMessage({
       type: ResponseType.TweetDetail,
+      path: '/i/api/graphql/query-id/TweetDetail',
+      method: 'GET',
       body: 'test body',
+      transactionId: 'tx-id',
     })
     const { value, error } = CaptureResponseMessage.validate(message.toObject())
 
@@ -22,6 +25,8 @@ describe('unit test for capture response web ext message', () => {
   it('can make response', () => {
     const message = new CaptureResponseMessage({
       type: ResponseType.TweetDetail,
+      path: '/i/api/graphql/query-id/TweetDetail',
+      method: 'GET',
       body: 'test body',
     })
 

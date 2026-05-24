@@ -15,18 +15,26 @@ type XTransactionIdProps = {
 }
 
 export class XTransactionId extends ValueObject<XTransactionIdProps> {
+  static parseEndpoint(path: string): Result<string> {
+    const match = path.match(endpointPattern)
+    if (!match)
+      return toErrorResult(
+        new Error(`Cannot parse endpoint from given path: \`${path}\``)
+      )
+
+    return toSuccessResult(match[1])
+  }
+
   static create(
     props: Omit<XTransactionIdProps, 'capturedAt' | 'endpoint'>
   ): Result<XTransactionId> {
-    const match = props.path.match(endpointPattern)
-    if (!match)
-      return toErrorResult(
-        new Error(`Cannot parse endpoint from given path: \`${props.path}\``)
-      )
+    const endpointResult = XTransactionId.parseEndpoint(props.path)
+    if (endpointResult.error) return endpointResult
+
     return toSuccessResult(
       new XTransactionId({
         ...props,
-        endpoint: match[1],
+        endpoint: endpointResult.value,
         capturedAt: new Date(Date.now()),
       })
     )

@@ -33,7 +33,10 @@ export const enum ResponseType {
 
 type CaptureResponseMessagePayload = {
   type: ResponseType
+  path: string
+  method: string
   body: string
+  transactionId?: string
 }
 
 const messageSchema: Joi.ObjectSchema<
@@ -63,6 +66,9 @@ const messageSchema: Joi.ObjectSchema<
       )
       .required(),
     body: Joi.string().required(),
+    path: Joi.string().required(),
+    method: Joi.string().required(),
+    transactionId: Joi.string().optional(),
   }).required(),
 })
 export class CaptureResponseMessage implements WebExtMessage<

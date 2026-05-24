@@ -15,6 +15,7 @@ import type {
   ISettingsRepository,
   ISettingsVORepository,
 } from '#domain/repositories/settings'
+import type { IXTransactionIdRepository } from '#domain/repositories/xTransactionId'
 import type { AsyncUseCase } from '#domain/useCases/base'
 import type {
   DownloadMediaFileCommand,
@@ -60,6 +61,7 @@ export type InfraProvider = {
   downloadSettingsRepo: ISettingsRepository<DownloadSettings>
   featureSettingsRepo: ISettingsRepository<FeatureSettings>
   tweetCacheRepo: ICache<TweetWithContent> | ICache<Tweet>
+  xTransactionIdRepo?: IXTransactionIdRepository
   downloaderBuilder: DownloaderBuilderMap
   eventPublisher: DomainEventPublisher
   solutionProvider: () => FetchTweetSolution

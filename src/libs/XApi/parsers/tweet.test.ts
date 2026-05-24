@@ -1,4 +1,4 @@
-import { retrieveTweetsFromInstruction } from './tweet'
+import { parseTweet, retrieveTweetsFromInstruction } from './tweet'
 import fs from 'node:fs'
 import path from 'node:path'
 
@@ -24,5 +24,22 @@ describe('unit test for tweet parser', () => {
       .flat()
 
     expect(tweets.length).toBe(tweetCount)
+  })
+
+  it('falls back to empty hashtags when entities.hashtags is missing', () => {
+    const body = JSON.parse(
+      fs
+        .readFileSync(path.resolve(__dirname, 'test-data', 'TweetDetail.json'))
+        .toString()
+    )
+
+    const tweetResult =
+      body.instructions[0].entries[0].content.itemContent.tweet_results.result
+
+    delete tweetResult.legacy.entities.hashtags
+
+    const tweet = parseTweet(tweetResult)
+
+    expect(tweet.mapBy(props => props.tweet.mapBy(p => p.hashtags))).toEqual([])
   })
 })

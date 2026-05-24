@@ -32,6 +32,10 @@ type TweetLikes = Array<XApi.Tweet | XApi.TweetLike>
 export const parseTweet = (
   tweetResult: XApi.TweetLike | XApi.Tweet
 ): TweetWithContent => {
+  const hashtags = Array.isArray(tweetResult.legacy.entities?.hashtags)
+    ? tweetResult.legacy.entities.hashtags
+    : []
+
   const media = isMediaTweet(tweetResult)
     ? parseMedias(tweetResult.legacy.extended_entities.media)
     : makeEmptyMediaCollection()
@@ -60,7 +64,7 @@ export const parseTweet = (
     videos: media.videos,
     images: media.images,
     user: user,
-    hashtags: tweetResult.legacy.entities.hashtags.map(hashtag => hashtag.text),
+    hashtags: hashtags.map(hashtag => hashtag.text),
   })
 
   return new TweetWithContent({

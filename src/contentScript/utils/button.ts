@@ -15,7 +15,6 @@ import {
   getTweetContentFromArticleChildElement,
   getTweetCreatedAtFromArticleChildElement,
   getTweetInfoFromArticleChildElement,
-  isTextOnlyTargetArticle,
 } from './article'
 
 type ButtonElement = HTMLElement
@@ -51,7 +50,6 @@ const responseStatusToButtonStatus = (respStatus: 'ok' | 'error') =>
 
 const isMediaButton = (button: HTMLElement) => {
   const article = getClosedTargetArticle(button)
-  if (article && isTextOnlyTargetArticle(article)) return false
   return article ? articleHasMedia(article) : false
 }
 

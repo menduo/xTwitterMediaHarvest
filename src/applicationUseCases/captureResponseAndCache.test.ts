@@ -1,21 +1,26 @@
 import { ResponseType } from '#libs/webExtMessage'
 import { MockTweetResponseCache } from '#mocks/caches/tweetResponseCache'
+import { MockXTransactionIdRepository } from '#mocks/repositories/xTransactionId'
 import { CaptureResponseAndCache } from './captureResponseAndCache'
 
 describe('CaptureResponseAndCache', () => {
   const mockCache = new MockTweetResponseCache()
+  const mockXTransactionIdRepo = new MockXTransactionIdRepository()
   let useCase: CaptureResponseAndCache
   let mockSave: jest.SpyInstance
   let mockSaveAll: jest.SpyInstance
+  let mockSaveTransactionId: jest.SpyInstance
 
   beforeAll(() => {
     mockSave = jest.spyOn(mockCache, 'save')
     mockSaveAll = jest.spyOn(mockCache, 'saveAll')
+    mockSaveTransactionId = jest.spyOn(mockXTransactionIdRepo, 'save')
   })
 
   beforeEach(() => {
     useCase = new CaptureResponseAndCache({
       tweetResponseCache: mockCache,
+      xTransactionIdRepo: mockXTransactionIdRepo,
     })
   })
 
@@ -24,6 +29,8 @@ describe('CaptureResponseAndCache', () => {
   it('should handle invalid JSON', async () => {
     const result = await useCase.process({
       type: ResponseType.TweetDetail,
+      path: '/i/api/graphql/query-id/TweetDetail',
+      method: 'GET',
       body: 'invalid json',
     })
     expect(result).toBeInstanceOf(Error)
@@ -378,6 +385,8 @@ describe('CaptureResponseAndCache', () => {
 
     await useCase.process({
       type: ResponseType.TweetDetail,
+      path: '/i/api/graphql/query-id/TweetDetail',
+      method: 'GET',
       body: JSON.stringify(validResponse),
     })
 
@@ -419,6 +428,49 @@ describe('CaptureResponseAndCache', () => {
     })
 
     expect(mockSave).toHaveBeenCalled()
+  })
+
+  it('stores transaction id from captured response when provided', async () => {
+    const body = JSON.stringify({
+      data: {
+        tweetResult: {
+          result: {
+            __typename: 'Tweet',
+            rest_id: '1',
+            legacy: {
+              id_str: '1',
+              created_at: 'Thu Apr 24 10:25:00 +0000 2025',
+              full_text: 'text',
+              entities: { hashtags: [], media: [] },
+              extended_entities: { media: [] },
+            },
+            core: {
+              user_results: {
+                result: {
+                  __typename: 'User',
+                  legacy: {
+                    name: 'Alice',
+                    screen_name: 'alice',
+                    protected: false,
+                  },
+                  rest_id: '2',
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    await useCase.process({
+      type: ResponseType.TweetResultByRestId,
+      path: '/i/api/graphql/query-id/TweetResultByRestId',
+      method: 'GET',
+      body,
+      transactionId: 'tx-id',
+    })
+
+    expect(mockSaveTransactionId).toHaveBeenCalled()
   })
 
   it('should handle user tweets response', async () => {

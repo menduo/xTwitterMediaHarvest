@@ -7,6 +7,10 @@ import { FeatureSettingsRepository } from '#infra/repositories/featureSettings'
 import { LocalExtensionStorageProxy } from '#infra/storageProxy'
 import { sendMessage } from '#libs/webExtMessage'
 import {
+  WebExtMessageErrorResponse,
+  WebExtMessagePayloadResponse,
+} from '#libs/webExtMessage/messages/base'
+import {
   CaptureResponseMessage,
   ResponseType,
 } from '#libs/webExtMessage/messages/captureResponse'
@@ -22,6 +26,12 @@ import TweetDeckBetaObserver from './observers/TweetDeckBetaObserver'
 import TwitterMediaObserver from './observers/TwitterMediaObserver'
 import { isBetaTweetDeck, isTwitter } from './utils/checker'
 import { runtime } from 'webextension-polyfill'
+
+const TRANSACTION_ID_RESPONSE_TIMEOUT_MS = 1200
+
+type TxIdMessageResponse =
+  | WebExtMessagePayloadResponse<{ transactionId: string }>
+  | WebExtMessageErrorResponse
 
 /**
  * Firefox-specific function to clone objects between privileged and unprivileged contexts
@@ -146,7 +156,10 @@ document.addEventListener('mh:media-response', async e => {
   await sendMessage(
     new CaptureResponseMessage({
       type: detectResponseTypeByEndpoint(e.detail.path),
+      path: e.detail.path,
+      method: e.detail.method,
       body: e.detail.body,
+      transactionId: e.detail.transactionId,
     })
   )
 })
@@ -157,18 +170,33 @@ runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   const txIdMessage = messageResult.value
   const uuid = self.crypto.randomUUID()
+  let hasResolved = false
+  const responseTxId = (ev: CustomEvent<MediaHarvest.TxIdResponseDetail>) => {
+    const { uuid: respUUID, value } = ev.detail
+    if (respUUID !== uuid) return
 
-  document.addEventListener(
-    'mh:tx-id:response',
-    function responseTxId(ev: CustomEvent<MediaHarvest.TxIdResponseDetail>) {
-      const { uuid: respUUID, value } = ev.detail
-      if (respUUID !== uuid) return
+    resolveResponse(txIdMessage.makeResponse(true, { transactionId: value }))
+  }
 
-      sendResponse(txIdMessage.makeResponse(true, { transactionId: value }))
+  const cleanup = () => {
+    clearTimeout(timeoutId)
+    document.removeEventListener('mh:tx-id:response', responseTxId)
+  }
 
-      document.removeEventListener('mh:tx-id:response', responseTxId)
-    }
-  )
+  const resolveResponse = (response: TxIdMessageResponse) => {
+    if (hasResolved) return
+    hasResolved = true
+    cleanup()
+    sendResponse(response)
+  }
+
+  document.addEventListener('mh:tx-id:response', responseTxId)
+
+  const timeoutId = self.setTimeout(() => {
+    resolveResponse(
+      txIdMessage.makeResponse(false, 'Transaction id unavailable')
+    )
+  }, TRANSACTION_ID_RESPONSE_TIMEOUT_MS)
 
   const { method, path } = txIdMessage.payload
   document.dispatchEvent(

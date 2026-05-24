@@ -22,6 +22,11 @@ type ESModule<T = unknown> = {
 type MakeTransactionId = (path: string, method: string) => Promise<string>
 
 let generateTransactionId: MakeTransactionId | undefined = undefined
+const initialWebpackChunks = Array.isArray(
+  self.webpackChunk_twitter_responsive_web
+)
+  ? self.webpackChunk_twitter_responsive_web
+  : []
 
 const enum MediaHarvestEvent {
   ResponseTransactionId = 'mh:tx-id:response',
@@ -30,7 +35,7 @@ const enum MediaHarvestEvent {
 
 self.webpackChunk_twitter_responsive_web = new Proxy<
   Window['webpackChunk_twitter_responsive_web']
->([], {
+>(initialWebpackChunks, {
   get: function (target, prop, receiver) {
     return prop === 'push'
       ? arrayPushProxy(target.push.bind(target))
@@ -45,11 +50,13 @@ function arrayPushProxy<T>(arrayPush: Array<T>['push']) {
         method,
         thisArg,
         args.map(item => {
-          const [[name], module] = item
-          if (typeof name !== 'string' || !isModule(module)) return item
-          return typeof name === 'string' && name.includes('ondemand.s')
-            ? [[name], moduleProxy(module)]
-            : item
+          const [, module] = item
+          if (!isModule(module)) return item
+
+          // X changes chunk names frequently and may serve different names
+          // across browsers. Proxy every module chunk so tx-id extraction
+          // does not depend on one specific bundle name.
+          return [item[0], moduleProxy(module)]
         })
       )
     },
@@ -59,9 +66,11 @@ function arrayPushProxy<T>(arrayPush: Array<T>['push']) {
 function moduleProxy(module: Module) {
   return new Proxy(module, {
     get(target, prop, receiver) {
-      return typeof prop === 'symbol'
-        ? Reflect.get(target, prop, receiver)
-        : webpackLoaderFunctionProxy(target[prop])
+      const value = Reflect.get(target, prop, receiver)
+
+      return typeof prop === 'symbol' || !isCallableFunction(value)
+        ? value
+        : webpackLoaderFunctionProxy(value as WebpackLoadFunction)
     },
   })
 }

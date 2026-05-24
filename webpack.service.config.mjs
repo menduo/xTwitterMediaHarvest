@@ -134,7 +134,7 @@ export default (env, argv) => {
   const isChrome = BROWSER === 'chrome'
   const isEdge = BROWSER === 'edge'
   const isChromium = isChrome || isEdge
-  const defaultFirefoxAddonId = 'xtwittermediaharvest-text@menduo.local'
+  const defaultFirefoxAddonId = 'xtwittermediaharvest@menduo.local'
   const firefoxAddonId =
     env['firefox-addon-id'] ??
     process.env.FIREFOX_ADDON_ID ??

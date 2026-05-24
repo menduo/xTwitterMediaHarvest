@@ -173,5 +173,38 @@ describe('NativeFetchTweetSolution', () => {
 
       expect(result.error).toBeInstanceOf(TweetIsNotFound)
     })
+
+    it('should expose nested fetch command 403 as no valid token', async () => {
+      jest.spyOn(xTokenRepo, 'getCsrfToken').mockResolvedValue(csrfToken)
+      jest.spyOn(xTokenRepo, 'getGuestToken').mockResolvedValue(undefined)
+      jest.spyOn(solutionQuotaRepo, 'get').mockResolvedValue(undefined)
+      jest
+        .spyOn(xApiClient, 'exec')
+        .mockResolvedValueOnce(
+          toSuccessResult({
+            tweetResult: toErrorResult(new FetchTweetError('Forbidden', 403)),
+            $metadata: {
+              remainingQuota: 133,
+              quotaResetTime: new Date(),
+            },
+          })
+        )
+        .mockResolvedValueOnce(
+          toSuccessResult({
+            tweetResult: toErrorResult(new FetchTweetError('Forbidden', 403)),
+            $metadata: {
+              remainingQuota: 132,
+              quotaResetTime: new Date(),
+            },
+          })
+        )
+
+      const result = await solution.process({
+        tweetId: '123',
+        transactionIdProvider: transactionIdProvider,
+      })
+
+      expect(result.error).toBeInstanceOf(NoValidSolutionToken)
+    })
   })
 })

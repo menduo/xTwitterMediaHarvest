@@ -15,6 +15,7 @@ import {
   filenameSettingsRepo,
   nativeFetchTweetSolution,
   tweetResponseCache,
+  xTransactionIdRepo,
 } from '#provider'
 import captureResponseHandler from './messageHandlers/captureResponse'
 import checkDownloadHistoryHandler from './messageHandlers/checkDownloadHistory'
@@ -43,6 +44,7 @@ export const initMessageRouter = (router: MessageRouter): MessageRouter =>
             ),
         },
         tweetCacheRepo: tweetResponseCache,
+        xTransactionIdRepo,
         solutionProvider: () => nativeFetchTweetSolution,
       })
     )
@@ -53,6 +55,7 @@ export const initMessageRouter = (router: MessageRouter): MessageRouter =>
     .route(
       WebExtAction.SaveTweetContent,
       saveTweetContentHandler({
+        downloadHistoryRepo,
         filenameSettingRepo: filenameSettingsRepo,
         downloadSettingsRepo,
         tweetCacheRepo: tweetResponseCache,
@@ -61,5 +64,5 @@ export const initMessageRouter = (router: MessageRouter): MessageRouter =>
     )
     .route(
       WebExtAction.CaptureResponse,
-      captureResponseHandler({ tweetResponseCache })
+      captureResponseHandler({ tweetResponseCache, xTransactionIdRepo })
     )

@@ -1,8 +1,10 @@
 declare namespace MediaHarvest {
   interface MediaResponseDetail {
     path: string
+    method: string
     status: number
     body: string
+    transactionId?: string
   }
 
   interface TxIdRequestDetail {

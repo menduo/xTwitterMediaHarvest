@@ -18,6 +18,14 @@ const _isColumnLoaded = () =>
 export default class TweetDeckBetaObserver implements IHarvestObserver {
   constructor(public autoRevealNsfw: boolean) {}
 
+  private getArticlesFromNode(node: HTMLElement): HTMLElement[] {
+    const articles = $$<HTMLElement>('article', node)
+    const currentArticle = node.closest<HTMLElement>('article')
+    if (currentArticle) articles.unshift(currentArticle)
+    if (node.matches('article')) articles.unshift(node)
+    return [...new Set(articles)]
+  }
+
   initialize() {
     const modalQuery = '[aria-labelledby="modal-header"]'
     const modal = $(modalQuery)
@@ -71,10 +79,10 @@ export default class TweetDeckBetaObserver implements IHarvestObserver {
         mutation.addedNodes.forEach(node => {
           if (!(node instanceof HTMLElement)) return
 
-          const article = $('article', node)
-          if (!article) return
-          if (this.autoRevealNsfw) revealNsfw(article)
-          if (articleHasMedia(article)) makeHarvester(article)
+          this.getArticlesFromNode(node).forEach(article => {
+            if (this.autoRevealNsfw) revealNsfw(article)
+            if (articleHasMedia(article)) makeHarvester(article)
+          })
         })
       })
     }

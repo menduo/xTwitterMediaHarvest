@@ -311,7 +311,11 @@ export class NativeFetchTweetSolution implements FetchTweetSolutionWithTransacti
           fallbackResult.value?.tweetResult.error
         )
 
-      const exposedCommandError = generalResult.error ?? fallbackResult.error
+      const exposedCommandError =
+        generalResult.error ??
+        generalResult.value?.tweetResult.error ??
+        fallbackResult.error ??
+        fallbackResult.value?.tweetResult.error
 
       return toErrorResult(
         this.parseCommandError(exposedCommandError) ??

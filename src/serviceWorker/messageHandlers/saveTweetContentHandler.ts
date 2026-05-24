@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 import type { ICache } from '#domain/repositories/cache'
+import type { IDownloadHistoryRepository } from '#domain/repositories/downloadHistory'
 import type {
   ISettingsRepository,
   ISettingsVORepository,
@@ -17,6 +18,7 @@ import { SaveTweetContent } from '../../applicationUseCases/saveTweetContent'
 import { type MessageContextHandler, makeErrorResponse } from '../messageRouter'
 
 type InfraProvider = {
+  downloadHistoryRepo: IDownloadHistoryRepository
   filenameSettingRepo: ISettingsVORepository<FilenameSetting>
   downloadSettingsRepo: ISettingsRepository<DownloadSettings>
   tweetCacheRepo: ICache<TweetWithContent>

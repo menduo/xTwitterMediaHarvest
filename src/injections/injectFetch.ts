@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
 const Pattern = Object.freeze({
   tweetRelated:
     /^(?:\/i\/api)?\/graphql\/(?<queryId>.+)?\/(?<queryName>TweetDetail|TweetResultByRestId|UserTweets|UserMedia|HomeTimeline|HomeLatestTimeline|UserTweetsAndReplies|UserHighlightsTweets|UserArticlesTweets|Bookmarks|Likes|CommunitiesExploreTimeline|ListLatestTweetsTimeline|SearchTimeline)$/,
@@ -17,7 +18,8 @@ type TxTarget = {
   path: string
 }
 
-const requesetPathWeakMap = new WeakMap<XMLHttpRequest, TxTarget>()
+const requestPathWeakMap = new WeakMap<XMLHttpRequest, TxTarget>()
+const requestTransactionIdWeakMap = new WeakMap<XMLHttpRequest, string>()
 
 function validateUrl(url: string | URL | undefined): URL | undefined {
   if (!url) return undefined
@@ -33,7 +35,7 @@ XMLHttpRequest.prototype.open = new Proxy(XMLHttpRequest.prototype.open, {
     const validUrl = validateUrl(url)
     if (validUrl && validUrl.pathname.match(Pattern.tweetRelated)) {
       thisArg.addEventListener('load', captureResponse)
-      requesetPathWeakMap.set(thisArg, {
+      requestPathWeakMap.set(thisArg, {
         method,
         path: validUrl.pathname,
       })
@@ -43,18 +45,42 @@ XMLHttpRequest.prototype.open = new Proxy(XMLHttpRequest.prototype.open, {
   },
 })
 
+XMLHttpRequest.prototype.setRequestHeader = new Proxy(
+  XMLHttpRequest.prototype.setRequestHeader,
+  {
+    apply(target, thisArg: XMLHttpRequest, args) {
+      const [name, value] = args
+      const targetInfo = requestPathWeakMap.get(thisArg)
+
+      if (
+        targetInfo &&
+        typeof name === 'string' &&
+        name.toLowerCase() === 'x-client-transaction-id' &&
+        typeof value === 'string'
+      ) {
+        requestTransactionIdWeakMap.set(thisArg, value)
+      }
+
+      return Reflect.apply(target, thisArg, args)
+    },
+  }
+)
+
 function captureResponse(this: XMLHttpRequest, _ev: ProgressEvent) {
   if (this.status === 200) {
     const url = URL.parse(this.responseURL)
     if (!url) return
+    const targetInfo = requestPathWeakMap.get(this)
 
     const event = new CustomEvent<MediaHarvest.MediaResponseDetail>(
       MediaHarvestEvent.MediaResponse,
       {
         detail: {
           path: url.pathname,
+          method: targetInfo?.method ?? 'GET',
           status: this.status,
           body: this.responseText,
+          transactionId: requestTransactionIdWeakMap.get(this),
         },
       }
     )
