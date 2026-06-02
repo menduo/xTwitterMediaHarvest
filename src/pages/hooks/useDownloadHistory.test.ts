@@ -137,6 +137,62 @@ describe('unit test for useDownloadHistory hook', () => {
         isValid: true,
       },
       {
+        data: JSON.stringify(
+          (() => {
+            const portableHistory = JSON.parse(
+              JSON.stringify(generatePortableV5DownloadHistory(1))
+            )
+            portableHistory.items[0].thumbnail = ''
+            return portableHistory
+          })()
+        ),
+        isValid: true,
+      },
+      {
+        data: JSON.stringify(
+          (() => {
+            const portableHistory = JSON.parse(
+              JSON.stringify(generatePortableV5DownloadHistory(1))
+            )
+            portableHistory.items[0].mediaType = 'text'
+            portableHistory.items[0].downloadKind = 'tweet-content'
+            return portableHistory
+          })()
+        ),
+        isValid: true,
+      },
+      {
+        data: JSON.stringify({
+          version: '5.0.0',
+          items: [
+            {
+              displayName: 'elonmusk',
+              downloadTime: '2026-06-02T05:46:21.480Z',
+              hashtags: [],
+              mediaType: 'mixed',
+              screenName: 'elonmusk',
+              thumbnail: '',
+              tweetId: '1519480761749016577',
+              userId: '',
+              tweetTime: '2022-04-28T00:56:58.000Z',
+            },
+            {
+              displayName: 'Elon Musk',
+              downloadTime: '2026-06-02T05:46:22.734Z',
+              hashtags: [],
+              mediaType: 'image',
+              screenName: 'elonmusk',
+              thumbnail:
+                'https://pbs.twimg.com/media/GSZvkScbIAAwHQi?format=jpg&name=thumb',
+              tweetId: '1812258574049157405',
+              userId: '44196397',
+              tweetTime: '2024-07-13T22:51:28.000Z',
+            },
+          ],
+        }),
+        isValid: true,
+      },
+      {
         data: JSON.stringify({ version: '5.0.0' }),
         isValid: false,
       },

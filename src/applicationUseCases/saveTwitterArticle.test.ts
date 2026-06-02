@@ -96,5 +96,10 @@ describe('SaveTwitterArticle', () => {
     expect(
       (downloadHistoryRepo.save.mock.calls[0][0] as DownloadHistory).id.value
     ).toBe('123')
+    expect(
+      (downloadHistoryRepo.save.mock.calls[0][0] as DownloadHistory).mapBy(
+        (_id, props) => props.tweetUser.mapBy(userProps => userProps.userId)
+      )
+    ).toBe('alice')
   })
 })

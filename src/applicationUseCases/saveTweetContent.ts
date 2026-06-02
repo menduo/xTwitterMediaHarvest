@@ -130,7 +130,7 @@ const createDownloadHistory = (
     hashtags: [],
     tweetTime: command.createdAt ?? new Date(),
     tweetUser: new DownloadHistoryTweetUser({
-      userId: '',
+      userId: command.screenName,
       displayName: command.screenName,
       screenName: command.screenName,
     }),

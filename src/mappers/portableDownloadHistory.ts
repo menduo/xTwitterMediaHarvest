@@ -11,6 +11,7 @@ import type { Factory } from '#domain/factories/base'
 import { DownloadHistoryTweetUser } from '#domain/valueObjects/downloadHistoryTweetUser'
 import type { V5PortableHistory } from '#domain/valueObjects/portableDownloadHistory'
 import { V5PortableDownloadHistoryItem } from '#domain/valueObjects/portableDownloadHistoryItem'
+import MediaType from '#enums/mediaType'
 
 export const v5PortableDownloadHistoryToDownloadHistories: Factory<
   V5PortableHistory,
@@ -29,7 +30,7 @@ export const v5PortableDownloadHistoryItemToDownloadHistory: Factory<
       new DownloadHistory(new DownloadHistoryId(props.tweetId), {
         downloadTime: props.downloadTime,
         hashtags: props.hashtags,
-        mediaType: props.mediaType,
+        mediaType: toSupportedMediaType(props.mediaType),
         tweetTime: props.tweetTime,
         tweetUser: new DownloadHistoryTweetUser({
           displayName: props.displayName,
@@ -39,3 +40,15 @@ export const v5PortableDownloadHistoryItemToDownloadHistory: Factory<
         thumbnail: props.thumbnail,
       })
   )
+
+const toSupportedMediaType = (mediaType: string): MediaType => {
+  if (
+    mediaType === MediaType.Mixed ||
+    mediaType === MediaType.Video ||
+    mediaType === MediaType.Image
+  ) {
+    return mediaType
+  }
+
+  return MediaType.Mixed
+}

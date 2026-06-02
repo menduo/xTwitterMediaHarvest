@@ -211,7 +211,7 @@ const createDownloadHistory = (
       command.createdAt ??
       (articleProps.createdAt ? new Date(articleProps.createdAt) : new Date()),
     tweetUser: new DownloadHistoryTweetUser({
-      userId: '',
+      userId: command.screenName,
       displayName: command.screenName,
       screenName: command.screenName,
     }),
