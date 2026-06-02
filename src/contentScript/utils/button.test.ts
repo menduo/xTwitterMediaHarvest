@@ -4,6 +4,7 @@
 import {
   DownloadTweetMediaMessage,
   SaveTweetContentMessage,
+  SaveTwitterArticleMessage,
   WebExtAction,
 } from '#libs/webExtMessage'
 import { makeHarvestButton } from '../core/Harvester'
@@ -21,7 +22,13 @@ const setPath = (path: string) =>
     writable: true,
   })
 
-const makeArticleHtml = ({ withMedia }: { withMedia: boolean }) => `
+const makeArticleHtml = ({
+  withArticle = false,
+  withMedia,
+}: {
+  withArticle?: boolean
+  withMedia: boolean
+}) => `
   <article data-testid="tweet">
     <div data-testid="User-Name">
       <a href="/alice/status/123">alice</a>
@@ -31,6 +38,7 @@ const makeArticleHtml = ({ withMedia }: { withMedia: boolean }) => `
     </a>
     <div data-testid="tweetText">hello tweet</div>
     ${withMedia ? '<div data-testid="videoPlayer"></div>' : ''}
+    ${withArticle ? '<a href="/i/article/456" data-testid="article-link">article</a>' : ''}
     <div role="group" aria-label="actions">
       <div data-testid="reply">
         <div>
@@ -105,7 +113,10 @@ describe('button click side effects', () => {
   })
 
   it('only saves tweet content for text-only tweets', async () => {
-    document.body.innerHTML = makeArticleHtml({ withMedia: false })
+    document.body.innerHTML = makeArticleHtml({
+      withArticle: true,
+      withMedia: false,
+    })
 
     const sendMessageSpy = jest
       .spyOn(runtime, 'sendMessage')
@@ -143,5 +154,43 @@ describe('button click side effects', () => {
         return validated.value?.toObject().action === WebExtAction.DownloadMedia
       })
     ).toBe(true)
+  })
+
+  it('saves twitter article instead of plain tweet content when article link exists', async () => {
+    document.body.innerHTML = makeArticleHtml({
+      withArticle: true,
+      withMedia: false,
+    })
+
+    const sendMessageSpy = jest
+      .spyOn(runtime, 'sendMessage')
+      .mockResolvedValueOnce({ status: 'ok', payload: { isExist: false } })
+      .mockResolvedValueOnce({ status: 'ok' })
+
+    prepareButton({ textOnly: true })
+    sendMessageSpy.mockClear()
+    await userEvent.click(screen.getByTestId('harvester-button'))
+
+    expect(
+      sendMessageSpy.mock.calls.map(
+        ([message]) => (message as { action: WebExtAction }).action
+      )
+    ).toEqual([WebExtAction.SaveTwitterArticle])
+    expect(
+      sendMessageSpy.mock.calls.some(([message]) => {
+        const validated = SaveTwitterArticleMessage.validate(message)
+        return (
+          validated.value?.toObject().action === WebExtAction.SaveTwitterArticle
+        )
+      })
+    ).toBe(true)
+    expect(
+      sendMessageSpy.mock.calls.some(([message]) => {
+        return (
+          (message as { action: WebExtAction }).action ===
+          WebExtAction.SaveTweetContent
+        )
+      })
+    ).toBe(false)
   })
 })

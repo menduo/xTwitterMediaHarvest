@@ -7,6 +7,7 @@ import type { ICache } from '#domain/repositories/cache'
 import type { IXTransactionIdRepository } from '#domain/repositories/xTransactionId'
 import type { AsyncUseCase } from '#domain/useCases/base'
 import { TweetWithContent } from '#domain/valueObjects/tweetWithContent'
+import { TwitterArticle } from '#domain/valueObjects/twitterArticle'
 import { XTransactionId } from '#domain/valueObjects/xTransactionId'
 import { isMediaTweet } from '#libs/XApi/parsers/refinements'
 import {
@@ -15,6 +16,7 @@ import {
   retrieveTweetFromTweetResult,
   retrieveTweetsFromInstruction,
 } from '#libs/XApi/parsers/tweet'
+import { parseTwitterArticleFromTweetResult } from '#libs/XApi/parsers/twitterArticle'
 import { ResponseType } from '#libs/webExtMessage'
 import { isErrorResult, toErrorResult, toSuccessResult } from '#utils/result'
 import Joi from 'joi'
@@ -29,6 +31,7 @@ export interface CaptureResponseAndCacheCommand {
 
 export interface InfraProvider {
   tweetResponseCache: ICache<TweetWithContent>
+  twitterArticleCache?: ICache<TwitterArticle>
   xTransactionIdRepo?: IXTransactionIdRepository
 }
 
@@ -69,10 +72,20 @@ export class CaptureResponseAndCache implements AsyncUseCase<
     if (schemaError) return schemaError
 
     const result = retrieveTweetFromTweetResult(value.data.tweetResult)
-    if (isErrorResult(result)) return
-    if (!isMediaTweet(result.value)) return
+    if (!isErrorResult(result)) {
+      const articleResult = parseTwitterArticleFromTweetResult(result.value)
+      if (articleResult.value && this.infra.twitterArticleCache) {
+        const error = await this.infra.twitterArticleCache.save(
+          articleResult.value
+        )
+        if (error) return error
+      }
 
-    return this.cacheTweets(parseTweet(result.value))
+      if (!isMediaTweet(result.value)) return
+      return this.cacheTweets(parseTweet(result.value))
+    }
+
+    return
   }
 
   protected async processTweetDetailResponse(

@@ -7,6 +7,7 @@ import {
   CheckDownloadHistoryMessage,
   DownloadTweetMediaMessage,
   SaveTweetContentMessage,
+  SaveTwitterArticleMessage,
   sendMessage,
 } from '#libs/webExtMessage'
 import {
@@ -16,6 +17,7 @@ import {
   getTweetCreatedAtFromArticleChildElement,
   getTweetInfoFromArticleChildElement,
 } from './article'
+import { getTwitterArticleFromArticleChildElement } from './twitterArticle'
 
 type ButtonElement = HTMLElement
 
@@ -53,22 +55,14 @@ const isMediaButton = (button: HTMLElement) => {
   return article ? articleHasMedia(article) : false
 }
 
-const buttonClickHandler = (e: MouseEvent) => {
-  e.stopImmediatePropagation()
-  const target = e.target
-  if (!(target instanceof Element)) return
-
-  const button = target.closest<HTMLElement>('.harvester')
-  if (!button) return
-  if (isDownloadingButton(button)) return
-
-  setButtonStatus(ButtonStatus.Downloading)(button)
+const saveTweetContentOrMedia = (button: HTMLElement) => {
   const { value, error } = getTweetInfoFromArticleChildElement(button)
   if (error) {
     // eslint-disable-next-line no-console
     console.error(error)
     return setButtonStatus(ButtonStatus.Error)(button)
   }
+
   const message = new DownloadTweetMediaMessage(value.mapBy(props => props))
   const contentResult = getTweetContentFromArticleChildElement(button)
   const createdAt = getTweetCreatedAtFromArticleChildElement(button)
@@ -93,6 +87,40 @@ const buttonClickHandler = (e: MouseEvent) => {
   sendMessage(message).then(resp =>
     setButtonStatus(responseStatusToButtonStatus(resp.status))(button)
   )
+}
+
+const buttonClickHandler = (e: MouseEvent) => {
+  e.stopImmediatePropagation()
+  const target = e.target
+  if (!(target instanceof Element)) return
+
+  const button = target.closest<HTMLElement>('.harvester')
+  if (!button) return
+  if (isDownloadingButton(button)) return
+
+  setButtonStatus(ButtonStatus.Downloading)(button)
+  const { value, error } = getTweetInfoFromArticleChildElement(button)
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error(error)
+    return setButtonStatus(ButtonStatus.Error)(button)
+  }
+  const article = getTwitterArticleFromArticleChildElement(button)
+  if (article) {
+    const createdAt = getTweetCreatedAtFromArticleChildElement(button)
+    const saveArticleMessage = new SaveTwitterArticleMessage({
+      ...value.mapBy(props => props),
+      createdAt,
+    })
+
+    return sendMessage(saveArticleMessage).then(resp =>
+      resp.status === 'ok'
+        ? setButtonStatus(ButtonStatus.Success)(button)
+        : saveTweetContentOrMedia(button)
+    )
+  }
+
+  return saveTweetContentOrMedia(button)
 }
 
 export const makeButtonListener = <T extends ButtonElement>(button: T): T => {

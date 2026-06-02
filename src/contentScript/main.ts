@@ -23,6 +23,7 @@ import {
 import './main.sass'
 import TextTweetObserver from './observers/TextTweetObserver'
 import TweetDeckBetaObserver from './observers/TweetDeckBetaObserver'
+import TwitterArticleObserver from './observers/TwitterArticleObserver'
 import TwitterMediaObserver from './observers/TwitterMediaObserver'
 import { isBetaTweetDeck, isTwitter } from './utils/checker'
 import { runtime } from 'webextension-polyfill'
@@ -62,6 +63,11 @@ const useTextObserver = () => {
   return new TextTweetObserver('twitter')
 }
 
+const useArticleObserver = () => {
+  if (isTwitter()) return new TwitterArticleObserver()
+  return new TwitterArticleObserver()
+}
+
 const useKeboardMonitor = () => {
   if (isTwitter()) return new TwitterKeyboardMonitor()
   if (isBetaTweetDeck()) return new TweetDeckBetaKeyboardMonitor()
@@ -89,6 +95,7 @@ featureSettingsRepo
   .then(feature => {
     const observer = useObserver(feature.autoRevealNsfw)
     const textObserver = useTextObserver()
+    const articleObserver = useArticleObserver()
     if (!observer) return
 
     window.addEventListener(
@@ -99,9 +106,11 @@ featureSettingsRepo
           monitorKeyboardByFlag(feature.keyboardShortcut)
           observer.initialize()
           textObserver.initialize()
+          articleObserver.initialize()
           if (!hasFocused) {
             observer.observeRoot()
             textObserver.observeRoot()
+            articleObserver.observeRoot()
             hasFocused = true
           }
         }
@@ -110,6 +119,7 @@ featureSettingsRepo
 
     observer.observeRoot()
     textObserver.observeRoot()
+    articleObserver.observeRoot()
     return feature
   })
 
