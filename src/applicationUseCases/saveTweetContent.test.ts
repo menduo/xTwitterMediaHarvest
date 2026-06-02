@@ -99,6 +99,12 @@ describe('SaveTweetContent', () => {
     expect(downloadSpy).toHaveBeenCalledTimes(1)
     expect(downloadHistoryRepo.save).toHaveBeenCalledTimes(1)
     expect(downloadHistoryRepo.save.mock.calls[0][0].id.value).toBe('123')
+    const history = downloadHistoryRepo.save.mock.calls[0][0] as DownloadHistory
+    expect(
+      history.mapBy((_id, props) =>
+        props.tweetUser.mapBy(userProps => userProps.userId)
+      )
+    ).toBe('alice')
     const downloadConfig = downloadSpy.mock.calls[0][0].target as DownloadConfig
     expect(downloadConfig.mapBy(props => props.url)).toBe(
       'data:text/markdown;base64,aGVsbG8gbWFya2Rvd24='

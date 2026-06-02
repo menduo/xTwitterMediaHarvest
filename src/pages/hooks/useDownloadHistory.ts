@@ -312,17 +312,16 @@ const portableHistoryItemSchema: Joi.ObjectPropertiesSchema<V5PortableDownloadHi
     tweetId: Joi.string(),
     displayName: Joi.string(),
     screenName: Joi.string(),
-    userId: Joi.string(),
-    mediaType: Joi.string<MediaType>().valid(
-      MediaType.Mixed,
-      MediaType.Video,
-      MediaType.Image
-    ),
+    userId: Joi.string().allow(''),
+    mediaType: Joi.string()
+      .allow('', null)
+      .empty(['', null])
+      .default(MediaType.Mixed),
     hashtags: Joi.array().items(Joi.string()).default([]),
-    thumbnail: Joi.string(),
+    thumbnail: Joi.string().allow('', null),
     tweetTime: Joi.date(),
     downloadTime: Joi.date(),
-  })
+  }).unknown(true)
 
 const portableHistorySchema: Joi.ObjectSchema<V5JsonSchema> = Joi.object({
   version: Joi.string()
