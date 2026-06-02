@@ -7,6 +7,7 @@
 export const enum WebExtAction {
   DownloadMedia = 'download-media',
   SaveTweetContent = 'save-tweet-content',
+  SaveTwitterArticle = 'save-twitter-article',
   CheckDownloadHistory = 'check-download-history',
   CaptureResponse = 'capture-response',
   RequestTransactionId = 'request-tx-id',

@@ -15,12 +15,14 @@ import {
   filenameSettingsRepo,
   nativeFetchTweetSolution,
   tweetResponseCache,
+  twitterArticleCache,
   xTransactionIdRepo,
 } from '#provider'
 import captureResponseHandler from './messageHandlers/captureResponse'
 import checkDownloadHistoryHandler from './messageHandlers/checkDownloadHistory'
 import downloadMessageHandler from './messageHandlers/downloadMediaHandler'
 import saveTweetContentHandler from './messageHandlers/saveTweetContentHandler'
+import saveTwitterArticleHandler from './messageHandlers/saveTwitterArticleHandler'
 import { type MessageRouter } from './messageRouter'
 
 const eventPublisher = getEventPublisher()
@@ -63,6 +65,21 @@ export const initMessageRouter = (router: MessageRouter): MessageRouter =>
       })
     )
     .route(
+      WebExtAction.SaveTwitterArticle,
+      saveTwitterArticleHandler({
+        downloadHistoryRepo,
+        filenameSettingRepo: filenameSettingsRepo,
+        downloadSettingsRepo,
+        tweetCacheRepo: tweetResponseCache,
+        twitterArticleCache,
+        browserDownloadFile: new BrowserDownloadFile(),
+      })
+    )
+    .route(
       WebExtAction.CaptureResponse,
-      captureResponseHandler({ tweetResponseCache, xTransactionIdRepo })
+      captureResponseHandler({
+        tweetResponseCache,
+        twitterArticleCache,
+        xTransactionIdRepo,
+      })
     )
