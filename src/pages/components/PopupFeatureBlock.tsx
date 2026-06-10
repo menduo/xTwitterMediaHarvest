@@ -44,6 +44,11 @@ const PopupFeatureBlock = memo((props: PopupFeatureBlockProps) => {
         handleChange={toggler.thumbnail}
         labelContent={i18n('Video thumbnail', 'popup')}
       />
+      <FeatureSwitch
+        isOn={featureSettings.hoverTriggerDownload}
+        handleChange={toggler.hoverTriggerDownload}
+        labelContent={i18n('Hover download', 'popup')}
+      />
     </Stack>
   )
 })

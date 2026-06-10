@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: twitter-media-harvest (4.5.3)\n"
-"POT-Creation-Date: 2026-03-19 04:13+0900\n"
+"Project-Id-Version: twitter-media-harvest (106.0.6)\n"
+"POT-Creation-Date: 2026-06-10 13:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -247,37 +247,84 @@ msgid ""
 "with this extension."
 msgstr "该检测将检查已安装的扩展是否与本扩展冲突。"
 
-#: src/pages/components/FeatureOptions.tsx:43
+#: src/pages/components/FeatureOptions.tsx:109
+msgctxt "options:features"
+msgid "Allow redownload existing tweets"
+msgstr "允许重复下载已下载推文"
+
+#: src/pages/components/FeatureOptions.tsx:63
 msgctxt "options:features"
 msgid "Auto-reveal sensitive content"
 msgstr "自动显示敏感内容"
 
-#: src/pages/components/FeatureOptions.tsx:61
+#: src/pages/components/FeatureOptions.tsx:141
 msgctxt "options:features"
 msgid "Download the thumbnail when the media is video."
 msgstr "媒体为视频时自动下载缩略图。"
 
-#: src/pages/components/FeatureOptions.tsx:60
+#: src/pages/components/FeatureOptions.tsx:140
 msgctxt "options:features"
 msgid "Download video thumbnail"
 msgstr "下载视频缩略图"
 
-#: src/pages/components/FeatureOptions.tsx:53
+#: src/pages/components/FeatureOptions.tsx:90
+msgctxt "options:features"
+msgid "Hover trigger delay"
+msgstr "悬停触发延迟"
+
+#: src/pages/components/FeatureOptions.tsx:80
+msgctxt "options:features"
+msgid "Hover trigger download"
+msgstr "悬停触发下载"
+
+#: src/pages/components/FeatureOptions.tsx:73
 msgctxt "options:features"
 msgid "Keyboard shortcut"
 msgstr "键盘快捷键"
 
-#: src/pages/components/FeatureOptions.tsx:20
+#: src/pages/components/FeatureOptions.tsx:102
+msgctxt "options:features"
+msgid "Milliseconds before hover starts a download."
+msgstr "悬停多久后开始下载，单位为毫秒。"
+
+#: src/pages/components/FeatureOptions.tsx:133
+msgctxt "options:features"
+msgid "Only redownload tweets downloaded at least this many days ago."
+msgstr "仅重复下载至少在这么多天前已下载的推文。"
+
+#: src/pages/components/FeatureOptions.tsx:120
+msgctxt "options:features"
+msgid "Redownload existing tweets after"
+msgstr "重复下载已下载推文的间隔天数"
+
+#: src/pages/components/FeatureOptions.tsx:81
+msgctxt "options:features"
+msgid ""
+"Trigger download after hovering over the Media Harvest button for a short "
+"moment."
+msgstr "鼠标悬停在 Media Harvest 按钮上一小段时间后触发下载。"
+
+#: src/pages/components/FeatureOptions.tsx:29
 msgctxt "options:features"
 msgid "Use keyboard shortcut to trigger download."
 msgstr "使用键盘快捷键触发下载。"
 
-#: src/pages/components/FeatureOptions.tsx:44
+#: src/pages/components/FeatureOptions.tsx:110
+msgctxt "options:features"
+msgid ""
+"When enabled, manual hover downloads can run again for tweets already "
+"marked as downloaded after the configured age."
+msgstr "开启后，手动悬停下载可以在达到设定天数后再次下载已标记为已下载的推文。"
+
+#: src/pages/components/FeatureOptions.tsx:64
 msgctxt "options:features"
 msgid ""
 "When the tweet was flagged as sensitive content, this feature can show the "
 "blured content automatically."
 msgstr "当推文被标记为敏感内容时，自动显示内容。"
+
+msgid ""
+msgstr "开启后，手动悬停下载可以再次下载已标记为已下载的推文。"
 
 #: src/pages/components/FootBar.tsx:45
 msgctxt "options:footBar:button"
@@ -646,6 +693,11 @@ msgstr "请作者喝杯咖啡！"
 msgctxt "popup"
 msgid "Changelog"
 msgstr "更新日志"
+
+#: src/pages/components/PopupFeatureBlock.tsx:50
+msgctxt "popup"
+msgid "Hover download"
+msgstr "悬停下载"
 
 #: src/pages/app/Popup.tsx:129
 msgctxt "popup"

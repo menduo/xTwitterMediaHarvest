@@ -22,7 +22,7 @@ describe('unit test for FeatureOptions component', () => {
 
     expect(
       queryAllByTestId(container, new RegExp(/.*-feature-switch$/))
-    ).toHaveLength(3)
+    ).toHaveLength(5)
     expect(container).toMatchSnapshot()
 
     unmount()

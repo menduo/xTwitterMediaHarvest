@@ -11,7 +11,21 @@ import { useCallback, useEffect, useReducer } from 'react'
 function reducer(
   settings: FeatureSettings,
   action:
-    | PureAction<'toggleNsfw' | 'toggleThumbnail' | 'toggleKeyboardShortcut'>
+    | PureAction<
+        | 'toggleNsfw'
+        | 'toggleThumbnail'
+        | 'toggleKeyboardShortcut'
+        | 'toggleHoverTriggerDownload'
+        | 'toggleAllowRedownloadExistingTweet'
+      >
+    | InitPayloadAction<
+        Partial<
+          Pick<
+            FeatureSettings,
+            'hoverTriggerDownloadDelayMs' | 'redownloadExistingTweetDelayDays'
+          >
+        >
+      >
     | InitPayloadAction<FeatureSettings>
 ): FeatureSettings {
   switch (action.type) {
@@ -30,15 +44,34 @@ function reducer(
         keyboardShortcut: !settings.keyboardShortcut,
       }
 
+    case 'toggleHoverTriggerDownload':
+      return {
+        ...settings,
+        hoverTriggerDownload: !settings.hoverTriggerDownload,
+      }
+
+    case 'toggleAllowRedownloadExistingTweet':
+      return {
+        ...settings,
+        allowRedownloadExistingTweet: !settings.allowRedownloadExistingTweet,
+      }
+
     case 'init':
-      return action.payload
+      return { ...settings, ...action.payload }
   }
 }
 
 type Toggler = Record<
-  'nsfw' | 'thumbnail' | 'keyboardShortcut',
+  | 'nsfw'
+  | 'thumbnail'
+  | 'keyboardShortcut'
+  | 'hoverTriggerDownload'
+  | 'allowRedownloadExistingTweet',
   () => Promise<void>
->
+> & {
+  hoverTriggerDownloadDelayMs: (value: number) => Promise<void>
+  redownloadExistingTweetDelayDays: (value: number) => Promise<void>
+}
 
 const useFeatureSettings = (
   featureSettingsRepo: ISettingsRepository<FeatureSettings>
@@ -78,12 +111,57 @@ const useFeatureSettings = (
     dispatch({ type: 'toggleKeyboardShortcut' })
   }, [featureSettings.keyboardShortcut, featureSettingsRepo])
 
+  const toggleHoverTriggerDownload = useCallback(async () => {
+    await featureSettingsRepo.save({
+      hoverTriggerDownload: !featureSettings.hoverTriggerDownload,
+    })
+    dispatch({ type: 'toggleHoverTriggerDownload' })
+  }, [featureSettings.hoverTriggerDownload, featureSettingsRepo])
+
+  const toggleAllowRedownloadExistingTweet = useCallback(async () => {
+    await featureSettingsRepo.save({
+      allowRedownloadExistingTweet:
+        !featureSettings.allowRedownloadExistingTweet,
+    })
+    dispatch({ type: 'toggleAllowRedownloadExistingTweet' })
+  }, [featureSettings.allowRedownloadExistingTweet, featureSettingsRepo])
+
+  const updateHoverTriggerDownloadDelayMs = useCallback(
+    async (value: number) => {
+      await featureSettingsRepo.save({
+        hoverTriggerDownloadDelayMs: value,
+      })
+      dispatch({
+        type: 'init',
+        payload: { hoverTriggerDownloadDelayMs: value },
+      })
+    },
+    [featureSettingsRepo]
+  )
+
+  const updateRedownloadExistingTweetDelayDays = useCallback(
+    async (value: number) => {
+      await featureSettingsRepo.save({
+        redownloadExistingTweetDelayDays: value,
+      })
+      dispatch({
+        type: 'init',
+        payload: { redownloadExistingTweetDelayDays: value },
+      })
+    },
+    [featureSettingsRepo]
+  )
+
   return [
     featureSettings,
     {
       nsfw: toggleRevealNsfw,
       thumbnail: toggleThumbnail,
       keyboardShortcut: toggleKeyboardShortcut,
+      hoverTriggerDownload: toggleHoverTriggerDownload,
+      hoverTriggerDownloadDelayMs: updateHoverTriggerDownloadDelayMs,
+      allowRedownloadExistingTweet: toggleAllowRedownloadExistingTweet,
+      redownloadExistingTweetDelayDays: updateRedownloadExistingTweetDelayDays,
     },
   ]
 }

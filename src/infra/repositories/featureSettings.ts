@@ -9,6 +9,10 @@ import type { FeatureSettings } from '#schema'
 
 const defaultFeature: FeatureSettings = {
   autoRevealNsfw: false,
+  hoverTriggerDownload: false,
+  hoverTriggerDownloadDelayMs: 200,
+  allowRedownloadExistingTweet: true,
+  redownloadExistingTweetDelayDays: 7,
   includeVideoThumbnail: false,
   keyboardShortcut: true,
 }

@@ -6,6 +6,10 @@ export class MockFeatureSettingsRepository implements ISettingsRepository<Featur
   constructor() {
     this.settings = {
       autoRevealNsfw: false,
+      hoverTriggerDownload: false,
+      hoverTriggerDownloadDelayMs: 200,
+      allowRedownloadExistingTweet: true,
+      redownloadExistingTweetDelayDays: 7,
       includeVideoThumbnail: false,
       keyboardShortcut: true,
     }
@@ -22,6 +26,10 @@ export class MockFeatureSettingsRepository implements ISettingsRepository<Featur
   getDefault(): FeatureSettings {
     return {
       autoRevealNsfw: false,
+      hoverTriggerDownload: false,
+      hoverTriggerDownloadDelayMs: 200,
+      allowRedownloadExistingTweet: true,
+      redownloadExistingTweetDelayDays: 7,
       includeVideoThumbnail: false,
       keyboardShortcut: true,
     }
