@@ -32,6 +32,10 @@ type FeatureSettings = {
   autoRevealNsfw: boolean
   includeVideoThumbnail: boolean
   keyboardShortcut: boolean
+  hoverTriggerDownload: boolean
+  hoverTriggerDownloadDelayMs: number
+  allowRedownloadExistingTweet: boolean
+  redownloadExistingTweetDelayDays: number
 }
 
 type AggregationToken = '{account}'

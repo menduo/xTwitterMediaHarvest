@@ -25,6 +25,10 @@ import TextTweetObserver from './observers/TextTweetObserver'
 import TweetDeckBetaObserver from './observers/TweetDeckBetaObserver'
 import TwitterArticleObserver from './observers/TwitterArticleObserver'
 import TwitterMediaObserver from './observers/TwitterMediaObserver'
+import {
+  setButtonFeatureSettings,
+  setButtonFeatureSettingsLoader,
+} from './utils/button'
 import { isBetaTweetDeck, isTwitter } from './utils/checker'
 import { runtime } from 'webextension-polyfill'
 
@@ -89,6 +93,23 @@ const monitorKeyboardByFlag = (() => {
 featureSettingsRepo
   .get()
   .then(feature => {
+    setButtonFeatureSettings({
+      hoverTriggerDownload: feature.hoverTriggerDownload,
+      hoverTriggerDownloadDelayMs: feature.hoverTriggerDownloadDelayMs,
+      allowRedownloadExistingTweet: feature.allowRedownloadExistingTweet,
+      redownloadExistingTweetDelayDays:
+        feature.redownloadExistingTweetDelayDays,
+    })
+    setButtonFeatureSettingsLoader(async () => {
+      const latest = await featureSettingsRepo.get()
+      return {
+        hoverTriggerDownload: latest.hoverTriggerDownload,
+        hoverTriggerDownloadDelayMs: latest.hoverTriggerDownloadDelayMs,
+        allowRedownloadExistingTweet: latest.allowRedownloadExistingTweet,
+        redownloadExistingTweetDelayDays:
+          latest.redownloadExistingTweetDelayDays,
+      }
+    })
     monitorKeyboardByFlag(feature.keyboardShortcut)
     return feature
   })

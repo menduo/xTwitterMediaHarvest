@@ -24,6 +24,10 @@ describe('unit test for useFeatureSettings hook', () => {
       await toggler.nsfw()
       await toggler.keyboardShortcut()
       await toggler.thumbnail()
+      await toggler.hoverTriggerDownload()
+      await toggler.allowRedownloadExistingTweet()
+      await toggler.hoverTriggerDownloadDelayMs(350)
+      await toggler.redownloadExistingTweetDelayDays(14)
     })
 
     const [settings] = result.current
@@ -32,5 +36,13 @@ describe('unit test for useFeatureSettings hook', () => {
     expect(settings.includeVideoThumbnail).toBe(
       !originalSettings.includeVideoThumbnail
     )
+    expect(settings.hoverTriggerDownload).toBe(
+      !originalSettings.hoverTriggerDownload
+    )
+    expect(settings.allowRedownloadExistingTweet).toBe(
+      !originalSettings.allowRedownloadExistingTweet
+    )
+    expect(settings.hoverTriggerDownloadDelayMs).toBe(350)
+    expect(settings.redownloadExistingTweetDelayDays).toBe(14)
   })
 })

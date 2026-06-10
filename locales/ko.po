@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: twitter-media-harvest (4.5.3)\n"
-"POT-Creation-Date: 2026-03-19 04:13+0900\n"
+"Project-Id-Version: twitter-media-harvest (106.0.6)\n"
+"POT-Creation-Date: 2026-06-10 13:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -247,37 +247,88 @@ msgid ""
 "with this extension."
 msgstr "이 진단은 이 확장 프로그램과 충돌할 수 있는 설치된 확장 프로그램을 확인합니다."
 
-#: src/pages/components/FeatureOptions.tsx:43
+#: src/pages/components/FeatureOptions.tsx:109
+msgctxt "options:features"
+msgid "Allow redownload existing tweets"
+msgstr "Allow redownload existing tweets"
+
+#: src/pages/components/FeatureOptions.tsx:63
 msgctxt "options:features"
 msgid "Auto-reveal sensitive content"
 msgstr "민감한 콘텐츠 자동 표시"
 
-#: src/pages/components/FeatureOptions.tsx:61
+#: src/pages/components/FeatureOptions.tsx:141
 msgctxt "options:features"
 msgid "Download the thumbnail when the media is video."
 msgstr "미디어가 비디오일 때 썸네일을 다운로드합니다."
 
-#: src/pages/components/FeatureOptions.tsx:60
+#: src/pages/components/FeatureOptions.tsx:140
 msgctxt "options:features"
 msgid "Download video thumbnail"
 msgstr "비디오 썸네일 다운로드"
 
-#: src/pages/components/FeatureOptions.tsx:53
+#: src/pages/components/FeatureOptions.tsx:90
+msgctxt "options:features"
+msgid "Hover trigger delay"
+msgstr "Hover trigger delay"
+
+#: src/pages/components/FeatureOptions.tsx:80
+msgctxt "options:features"
+msgid "Hover trigger download"
+msgstr "Hover trigger download"
+
+#: src/pages/components/FeatureOptions.tsx:73
 msgctxt "options:features"
 msgid "Keyboard shortcut"
 msgstr "키보드 단축키"
 
-#: src/pages/components/FeatureOptions.tsx:20
+#: src/pages/components/FeatureOptions.tsx:102
+msgctxt "options:features"
+msgid "Milliseconds before hover starts a download."
+msgstr "Milliseconds before hover starts a download."
+
+#: src/pages/components/FeatureOptions.tsx:133
+msgctxt "options:features"
+msgid "Only redownload tweets downloaded at least this many days ago."
+msgstr "Only redownload tweets downloaded at least this many days ago."
+
+#: src/pages/components/FeatureOptions.tsx:120
+msgctxt "options:features"
+msgid "Redownload existing tweets after"
+msgstr "Redownload existing tweets after"
+
+#: src/pages/components/FeatureOptions.tsx:81
+msgctxt "options:features"
+msgid ""
+"Trigger download after hovering over the Media Harvest button for a short "
+"moment."
+msgstr ""
+"Trigger download after hovering over the Media Harvest button for a short "
+"moment."
+
+#: src/pages/components/FeatureOptions.tsx:29
 msgctxt "options:features"
 msgid "Use keyboard shortcut to trigger download."
 msgstr "키보드 단축키를 사용하여 다운로드를 트리거합니다."
 
-#: src/pages/components/FeatureOptions.tsx:44
+#: src/pages/components/FeatureOptions.tsx:110
+msgctxt "options:features"
+msgid ""
+"When enabled, manual hover downloads can run again for tweets already "
+"marked as downloaded after the configured age."
+msgstr "When enabled, manual hover downloads can run again for tweets already marked as downloaded after the configured age."
+
+#: src/pages/components/FeatureOptions.tsx:64
 msgctxt "options:features"
 msgid ""
 "When the tweet was flagged as sensitive content, this feature can show the "
 "blured content automatically."
 msgstr "트윗이 민감한 콘텐츠로 표시되었을 때 이 기능은 흐린 콘텐츠를 자동으로 표시할 수 있습니다."
+
+msgid ""
+msgstr ""
+"When enabled, manual hover downloads can run again for tweets already "
+"marked as downloaded."
 
 #: src/pages/components/FootBar.tsx:45
 msgctxt "options:footBar:button"
@@ -646,6 +697,11 @@ msgstr "커피 한 잔 사주세요!"
 msgctxt "popup"
 msgid "Changelog"
 msgstr "변경 기록"
+
+#: src/pages/components/PopupFeatureBlock.tsx:50
+msgctxt "popup"
+msgid "Hover download"
+msgstr "Hover download"
 
 #: src/pages/app/Popup.tsx:129
 msgctxt "popup"

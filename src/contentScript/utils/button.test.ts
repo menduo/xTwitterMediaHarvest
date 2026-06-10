@@ -9,12 +9,25 @@ import {
 } from '#libs/webExtMessage'
 import { makeHarvestButton } from '../core/Harvester'
 import { setTargetArticle, setTextOnlyTargetArticle } from './article'
-import { screen } from '@testing-library/dom'
+import { setButtonFeatureSettings } from './button'
+import { fireEvent, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import 'core-js/actual/url/can-parse'
 import * as IOE from 'fp-ts/lib/IOEither'
 import { pipe } from 'fp-ts/lib/function'
 import { runtime } from 'webextension-polyfill'
+
+const disabledHoverSettings = {
+  hoverTriggerDownload: false,
+  hoverTriggerDownloadDelayMs: 200,
+  allowRedownloadExistingTweet: true,
+  redownloadExistingTweetDelayDays: 7,
+}
+
+const enabledHoverSettings = {
+  ...disabledHoverSettings,
+  hoverTriggerDownload: true,
+}
 
 const setPath = (path: string) =>
   Object.defineProperty(window, 'location', {
@@ -60,10 +73,14 @@ jest.mock(
 )
 
 describe('button click side effects', () => {
-  beforeEach(() => setPath('/alice'))
+  beforeEach(() => {
+    setPath('/alice')
+    setButtonFeatureSettings(disabledHoverSettings)
+  })
 
   afterEach(() => {
     document.body.innerHTML = ''
+    jest.useRealTimers()
     jest.restoreAllMocks()
   })
 
@@ -192,5 +209,161 @@ describe('button click side effects', () => {
         )
       })
     ).toBe(false)
+  })
+
+  it('triggers download after hovering over the button', async () => {
+    jest.useFakeTimers()
+    document.body.innerHTML = makeArticleHtml({ withMedia: true })
+
+    const sendMessageSpy = jest
+      .spyOn(runtime, 'sendMessage')
+      .mockResolvedValueOnce({ status: 'ok', payload: { isExist: false } })
+      .mockResolvedValueOnce({ status: 'ok' })
+      .mockResolvedValueOnce({ status: 'ok' })
+
+    prepareButton()
+    sendMessageSpy.mockClear()
+    setButtonFeatureSettings(enabledHoverSettings)
+
+    fireEvent.mouseEnter(screen.getByTestId('harvester-button'))
+    await Promise.resolve()
+    jest.advanceTimersByTime(199)
+
+    expect(sendMessageSpy).not.toHaveBeenCalled()
+
+    jest.advanceTimersByTime(1)
+
+    await waitFor(() =>
+      expect(
+        sendMessageSpy.mock.calls.some(([message]) => {
+          const validated = DownloadTweetMediaMessage.validate(message)
+          return (
+            validated.value?.toObject().action === WebExtAction.DownloadMedia
+          )
+        })
+      ).toBe(true)
+    )
+  })
+
+  it('does not trigger hover download when the pointer leaves before delay', async () => {
+    jest.useFakeTimers()
+    document.body.innerHTML = makeArticleHtml({ withMedia: true })
+
+    const sendMessageSpy = jest
+      .spyOn(runtime, 'sendMessage')
+      .mockResolvedValueOnce({ status: 'ok', payload: { isExist: false } })
+
+    prepareButton()
+    sendMessageSpy.mockClear()
+    setButtonFeatureSettings(enabledHoverSettings)
+
+    const button = screen.getByTestId('harvester-button')
+    fireEvent.mouseEnter(button)
+    await Promise.resolve()
+    jest.advanceTimersByTime(100)
+    fireEvent.mouseLeave(button)
+    jest.advanceTimersByTime(100)
+    await Promise.resolve()
+
+    expect(sendMessageSpy).not.toHaveBeenCalled()
+  })
+
+  it('triggers hover download for old downloaded buttons when redownload is enabled', async () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-06-10T00:00:00.000Z'))
+    document.body.innerHTML = makeArticleHtml({ withMedia: true })
+
+    const sendMessageSpy = jest
+      .spyOn(runtime, 'sendMessage')
+      .mockResolvedValueOnce({
+        status: 'ok',
+        payload: {
+          isExist: true,
+          downloadTime: '2026-06-02T00:00:00.000Z',
+        },
+      })
+      .mockResolvedValueOnce({ status: 'ok' })
+      .mockResolvedValueOnce({ status: 'ok' })
+
+    prepareButton()
+
+    const button = screen.getByTestId('harvester-button')
+    await waitFor(() => expect(button).toHaveClass('downloaded'))
+
+    sendMessageSpy.mockClear()
+    setButtonFeatureSettings(enabledHoverSettings)
+    fireEvent.mouseEnter(button)
+    await Promise.resolve()
+    jest.advanceTimersByTime(200)
+
+    await waitFor(() =>
+      expect(
+        sendMessageSpy.mock.calls.some(([message]) => {
+          const validated = DownloadTweetMediaMessage.validate(message)
+          return (
+            validated.value?.toObject().action === WebExtAction.DownloadMedia
+          )
+        })
+      ).toBe(true)
+    )
+  })
+
+  it('does not trigger hover download for recently downloaded buttons', async () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-06-10T00:00:00.000Z'))
+    document.body.innerHTML = makeArticleHtml({ withMedia: true })
+
+    const sendMessageSpy = jest
+      .spyOn(runtime, 'sendMessage')
+      .mockResolvedValueOnce({
+        status: 'ok',
+        payload: {
+          isExist: true,
+          downloadTime: '2026-06-09T00:00:00.000Z',
+        },
+      })
+
+    prepareButton()
+
+    const button = screen.getByTestId('harvester-button')
+    await waitFor(() => expect(button).toHaveClass('downloaded'))
+
+    sendMessageSpy.mockClear()
+    setButtonFeatureSettings(enabledHoverSettings)
+    fireEvent.mouseEnter(button)
+    await Promise.resolve()
+    jest.advanceTimersByTime(200)
+    await Promise.resolve()
+
+    expect(sendMessageSpy).not.toHaveBeenCalled()
+  })
+
+  it('does not trigger hover download for downloaded buttons when redownload is disabled', async () => {
+    document.body.innerHTML = makeArticleHtml({ withMedia: true })
+
+    const sendMessageSpy = jest
+      .spyOn(runtime, 'sendMessage')
+      .mockResolvedValueOnce({
+        status: 'ok',
+        payload: {
+          isExist: true,
+          downloadTime: '2026-06-02T00:00:00.000Z',
+        },
+      })
+
+    prepareButton()
+
+    const button = screen.getByTestId('harvester-button')
+    await waitFor(() => expect(button).toHaveClass('downloaded'))
+
+    sendMessageSpy.mockClear()
+    setButtonFeatureSettings({
+      ...enabledHoverSettings,
+      allowRedownloadExistingTweet: false,
+    })
+    fireEvent.mouseEnter(button)
+    await Promise.resolve()
+
+    expect(sendMessageSpy).not.toHaveBeenCalled()
   })
 })

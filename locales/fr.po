@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: twitter-media-harvest (4.5.3)\n"
-"POT-Creation-Date: 2026-03-19 04:13+0900\n"
+"Project-Id-Version: twitter-media-harvest (106.0.6)\n"
+"POT-Creation-Date: 2026-06-10 13:57+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13,7 +13,9 @@ msgstr ""
 
 msgctxt "app"
 msgid "appDesc"
-msgstr "Télécharge en un clic les vidéos, les images et les publications texte de Twitter/X ou TweetDeck."
+msgstr ""
+"Télécharge en un clic les vidéos, les images et les publications texte de "
+"Twitter/X ou TweetDeck."
 
 msgctxt "app"
 msgid "appName"
@@ -257,32 +259,78 @@ msgstr ""
 "Ce diagnostic vérifiera les extensions installées susceptibles d'entrer en "
 "conflit avec cette extension."
 
-#: src/pages/components/FeatureOptions.tsx:43
+#: src/pages/components/FeatureOptions.tsx:109
+msgctxt "options:features"
+msgid "Allow redownload existing tweets"
+msgstr "Allow redownload existing tweets"
+
+#: src/pages/components/FeatureOptions.tsx:63
 msgctxt "options:features"
 msgid "Auto-reveal sensitive content"
 msgstr "Afficher automatiquement le contenu sensible"
 
-#: src/pages/components/FeatureOptions.tsx:61
+#: src/pages/components/FeatureOptions.tsx:141
 msgctxt "options:features"
 msgid "Download the thumbnail when the media is video."
 msgstr "Télécharger la vignette lorsque le média est une vidéo."
 
-#: src/pages/components/FeatureOptions.tsx:60
+#: src/pages/components/FeatureOptions.tsx:140
 msgctxt "options:features"
 msgid "Download video thumbnail"
 msgstr "Télécharger la vignette vidéo"
 
-#: src/pages/components/FeatureOptions.tsx:53
+#: src/pages/components/FeatureOptions.tsx:90
+msgctxt "options:features"
+msgid "Hover trigger delay"
+msgstr "Hover trigger delay"
+
+#: src/pages/components/FeatureOptions.tsx:80
+msgctxt "options:features"
+msgid "Hover trigger download"
+msgstr "Hover trigger download"
+
+#: src/pages/components/FeatureOptions.tsx:73
 msgctxt "options:features"
 msgid "Keyboard shortcut"
 msgstr "Raccourci clavier"
 
-#: src/pages/components/FeatureOptions.tsx:20
+#: src/pages/components/FeatureOptions.tsx:102
+msgctxt "options:features"
+msgid "Milliseconds before hover starts a download."
+msgstr "Milliseconds before hover starts a download."
+
+#: src/pages/components/FeatureOptions.tsx:133
+msgctxt "options:features"
+msgid "Only redownload tweets downloaded at least this many days ago."
+msgstr "Only redownload tweets downloaded at least this many days ago."
+
+#: src/pages/components/FeatureOptions.tsx:120
+msgctxt "options:features"
+msgid "Redownload existing tweets after"
+msgstr "Redownload existing tweets after"
+
+#: src/pages/components/FeatureOptions.tsx:81
+msgctxt "options:features"
+msgid ""
+"Trigger download after hovering over the Media Harvest button for a short "
+"moment."
+msgstr ""
+"Trigger download after hovering over the Media Harvest button for a short "
+"moment."
+
+#: src/pages/components/FeatureOptions.tsx:29
 msgctxt "options:features"
 msgid "Use keyboard shortcut to trigger download."
 msgstr "Utiliser un raccourci clavier pour déclencher le téléchargement."
 
-#: src/pages/components/FeatureOptions.tsx:44
+#: src/pages/components/FeatureOptions.tsx:110
+msgctxt "options:features"
+msgid ""
+"When enabled, manual hover downloads can run again for tweets already "
+"marked as downloaded after the configured age."
+msgstr "When enabled, manual hover downloads can run again for tweets already marked as downloaded after the configured age."
+
+#: src/pages/components/FeatureOptions.tsx:64
 msgctxt "options:features"
 msgid ""
 "When the tweet was flagged as sensitive content, this feature can show the "
@@ -290,6 +338,11 @@ msgid ""
 msgstr ""
 "Lorsque le tweet est marqué comme contenu sensible, cette fonctionnalité "
 "peut afficher automatiquement le contenu flouté."
+
+msgid ""
+msgstr ""
+"When enabled, manual hover downloads can run again for tweets already "
+"marked as downloaded."
 
 #: src/pages/components/FootBar.tsx:45
 msgctxt "options:footBar:button"
@@ -666,6 +719,11 @@ msgstr "Offrez-moi un café !"
 msgctxt "popup"
 msgid "Changelog"
 msgstr "Journal des modifications"
+
+#: src/pages/components/PopupFeatureBlock.tsx:50
+msgctxt "popup"
+msgid "Hover download"
+msgstr "Hover download"
 
 #: src/pages/app/Popup.tsx:129
 msgctxt "popup"

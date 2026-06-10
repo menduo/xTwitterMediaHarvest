@@ -6,6 +6,17 @@ $harvest-yellow: rgb(241, 185, 26)
   to
     transform: rotate(360deg)
 
+@keyframes hover-trigger-pulse
+  0%
+    box-shadow: 0 0 0 0 rgba(241, 185, 26, 0.45)
+    transform: scale(1)
+  70%
+    box-shadow: 0 0 0 10px rgba(241, 185, 26, 0)
+    transform: scale(1.06)
+  100%
+    box-shadow: 0 0 0 0 rgba(241, 185, 26, 0)
+    transform: scale(1)
+
 =loading-spin
   fill: rgb(29, 161, 242)
   animation-name: spin
@@ -63,6 +74,14 @@ $harvest-yellow: rgb(241, 185, 26)
   flex-direction: row
   margin-left: 3em
   +download-button-svg
+  &.hover-triggered
+    border-radius: 999px
+    animation-name: hover-trigger-pulse
+    animation-duration: 900ms
+    animation-timing-function: ease-out
+    animation-iteration-count: 1
+    svg
+      fill: $harvest-yellow !important
   &.status
     min-height: 1.875rem
     // padding-left: 0.85rem

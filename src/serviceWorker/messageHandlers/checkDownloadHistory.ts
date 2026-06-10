@@ -4,30 +4,36 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 import { CheckDownloadHistoryMessage } from '#libs/webExtMessage'
-import {
-  CheckMediaTweetHasBeenDownloaded,
-  type InfraProvider,
-} from '../../applicationUseCases/checkMediaTweetHasBeenDownloaded'
+import type { InfraProvider } from '../../applicationUseCases/checkMediaTweetHasBeenDownloaded'
 import { type MessageContextHandler, makeErrorResponse } from '../messageRouter'
 
 const checkDownloadHistoryHandler = (
   infraProvider: InfraProvider
 ): MessageContextHandler => {
-  const checkMediaTweetHasBeenDownloaded = new CheckMediaTweetHasBeenDownloaded(
-    infraProvider
-  )
-
   return async ctx => {
     const { value: message, error } = CheckDownloadHistoryMessage.validate(
       ctx.message
     )
     if (error) return ctx.response(makeErrorResponse(error.message))
 
-    const isExist = await checkMediaTweetHasBeenDownloaded.process({
-      tweetId: message.payload.tweetId,
-    })
+    const { value: history, error: historyError } =
+      await infraProvider.downloadHistoryRepo.getByTweetId(
+        message.payload.tweetId
+      )
+    if (historyError) {
+      // eslint-disable-next-line no-console
+      console.error(historyError)
+      return ctx.response(message.makeResponse(true, { isExist: false }))
+    }
 
-    return ctx.response(message.makeResponse(true, { isExist }))
+    return ctx.response(
+      message.makeResponse(true, {
+        isExist: !!history,
+        downloadTime: history?.mapBy((_, props) =>
+          props.downloadTime.toISOString()
+        ),
+      })
+    )
   }
 }
 

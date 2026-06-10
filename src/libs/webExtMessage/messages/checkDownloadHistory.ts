@@ -19,6 +19,7 @@ type CheckDownloadHistoryMessagePayload = {
 
 type CheckDownloadHistoryResponsePayload = {
   isExist: boolean
+  downloadTime?: string
 }
 
 const messageSchema: Joi.ObjectSchema<
@@ -57,7 +58,13 @@ export class CheckDownloadHistoryMessage implements WebExtMessage<
     | WebExtMessageErrorResponse {
     const [isOk, payload] = args
     return isOk
-      ? { status: 'ok', payload: { isExist: payload.isExist } }
+      ? {
+          status: 'ok',
+          payload: {
+            isExist: payload.isExist,
+            downloadTime: payload.downloadTime,
+          },
+        }
       : { status: 'error', reason: payload }
   }
 

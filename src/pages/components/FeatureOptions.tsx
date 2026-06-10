@@ -9,7 +9,16 @@ import useFeatureSettings from '#pages/hooks/useFeatureSettings'
 import type { FeatureSettings } from '#schema'
 import DownloadKey from '../../contentScript/KeyboardMonitor/DownloadKey'
 import { RichFeatureSwitch } from './controls/featureControls'
-import { Kbd, Text, VStack } from '@chakra-ui/react'
+import {
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  Kbd,
+  NumberInput,
+  NumberInputField,
+  Text,
+  VStack,
+} from '@chakra-ui/react'
 import React from 'react'
 
 const getKey = (downloadKey: DownloadKey): string => downloadKey.slice(-1)
@@ -36,6 +45,17 @@ type FeatureOptionsProps = {
 
 const FeatureOptions = ({ featureSettingsRepo }: FeatureOptionsProps) => {
   const [featureSettings, toggler] = useFeatureSettings(featureSettingsRepo)
+  const handleHoverDelayChange = (_valueAsString: string, value: number) => {
+    if (!Number.isFinite(value)) return
+    void toggler.hoverTriggerDownloadDelayMs(value)
+  }
+  const handleRedownloadDelayDaysChange = (
+    _valueAsString: string,
+    value: number
+  ) => {
+    if (!Number.isFinite(value)) return
+    void toggler.redownloadExistingTweetDelayDays(value)
+  }
 
   return (
     <VStack>
@@ -56,6 +76,66 @@ const FeatureOptions = ({ featureSettingsRepo }: FeatureOptionsProps) => {
         handleClick={toggler.keyboardShortcut}
         testId="keyboardShortcut-feature-switch"
       />
+      <RichFeatureSwitch
+        name={i18n('Hover trigger download', 'options:features')}
+        desc={i18n(
+          'Trigger download after hovering over the Media Harvest button for a short moment.',
+          'options:features'
+        )}
+        isOn={featureSettings.hoverTriggerDownload}
+        handleClick={toggler.hoverTriggerDownload}
+        testId="hoverTriggerDownload-feature-switch"
+      />
+      <FormControl data-testid="hoverTriggerDownloadDelayMs-setting">
+        <FormLabel>{i18n('Hover trigger delay', 'options:features')}</FormLabel>
+        <NumberInput
+          value={featureSettings.hoverTriggerDownloadDelayMs}
+          min={0}
+          max={3000}
+          step={50}
+          isDisabled={!featureSettings.hoverTriggerDownload}
+          onChange={handleHoverDelayChange}
+        >
+          <NumberInputField />
+        </NumberInput>
+        <FormHelperText>
+          {i18n(
+            'Milliseconds before hover starts a download.',
+            'options:features'
+          )}
+        </FormHelperText>
+      </FormControl>
+      <RichFeatureSwitch
+        name={i18n('Allow redownload existing tweets', 'options:features')}
+        desc={i18n(
+          'When enabled, manual hover downloads can run again for tweets already marked as downloaded after the configured age.',
+          'options:features'
+        )}
+        isOn={featureSettings.allowRedownloadExistingTweet}
+        handleClick={toggler.allowRedownloadExistingTweet}
+        testId="allowRedownloadExistingTweet-feature-switch"
+      />
+      <FormControl data-testid="redownloadExistingTweetDelayDays-setting">
+        <FormLabel>
+          {i18n('Redownload existing tweets after', 'options:features')}
+        </FormLabel>
+        <NumberInput
+          value={featureSettings.redownloadExistingTweetDelayDays}
+          min={0}
+          max={365}
+          step={1}
+          isDisabled={!featureSettings.allowRedownloadExistingTweet}
+          onChange={handleRedownloadDelayDaysChange}
+        >
+          <NumberInputField />
+        </NumberInput>
+        <FormHelperText>
+          {i18n(
+            'Only redownload tweets downloaded at least this many days ago.',
+            'options:features'
+          )}
+        </FormHelperText>
+      </FormControl>
       <RichFeatureSwitch
         name={i18n('Download video thumbnail', 'options:features')}
         desc={i18n(
